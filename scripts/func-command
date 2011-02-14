@@ -4,6 +4,7 @@
 
 
 import sys
+import os
 import func.overlord.client
 from func.overlord.scripts import base_func_parser, handle_base_func_options, errorprint
 from func.utils import is_error
@@ -13,6 +14,8 @@ def main(args):
     parser = base_func_parser(outputpath=False)
     parser.add_option('--returncodes', action='store_true', help="prefix each line with the commands returncode")
     parser.add_option('--oneline', action='store_true', help="output all things as one line - to make grepping easier, will not remove \n's from output of commands, though")
+    parser.add_option('-o', '--output-to-dir', dest='output_dest', default=None,
+          help="output each hosts results to a file in a dir named for the host")    
     opts, args = parser.parse_args(args)
     opts = handle_base_func_options(parser, opts)
 
@@ -25,6 +28,20 @@ def main(args):
     hosts ='*'
     if opts.host:
         hosts = ';'.join(opts.host)
+    
+    if opts.output_dest:
+        if opts.output_dest[0] != '/':
+            opts.output_dest = os.path.realpath(os.path.expanduser(opts.output_dest))
+        if not os.path.exists(opts.output_dest):
+            try:
+                os.makedirs(opts.output_dest)
+            except (IOError, OSError), e:
+                print >> sys.stderr, "Could not make dir %s: %s" % (opts.output_dest, e)
+                sys.exit(1)
+        
+        if not os.access(opts.output_dest, os.W_OK):
+            print >> sys.stderr, "Cannot write to path %s" % opts.output_dest
+            sys.exit(1)
 
     fc = func.overlord.client.Client(hosts, timeout=opts.timeout, nforks=opts.forks)
 
@@ -39,6 +56,16 @@ def main(args):
             errorprint(msg)
             continue
 
+        if opts.output_dest:
+            fo = open(opts.output_dest + '/' + hn+'.output', 'w')
+            fo.write(mycmd + '\n')
+            if opts.returncodes:
+                fo.write('%s:\nreturn code:%s\n%s\n' % (hn, output[0], output[1]))
+            else:
+                fo.write('%s:\n%s\n' % (hn,output[1]))
+            fo.close()
+            continue
+
         if opts.oneline:
             if opts.returncodes:
                 print '%s:%s:%s' % (hn, output[0], output[1])
@@ -49,6 +76,9 @@ def main(args):
                 print '%s:\nreturn code:%s\n%s' % (hn, output[0], output[1])
             else:
                 print '%s:\n%s' % (hn, output[1])
+
+    if opts.output_dest:
+        print "output written to %s" % opts.output_dest
 
     
 if __name__ == "__main__":
