@@ -15,13 +15,24 @@
 
 """Get a file, chunk by chunk. Minion side."""
 import sys
-import sha
 import func_module
+try:
+    # py 2.4+
+    import hashlib
+except ImportError:
+    # py 2.3 support for RHEL4
+    import sha
+    class hashlib:
+        @staticmethod
+        def new(algo):
+            if algo == 'sha1':
+                return sha.new()
+            raise ValueError, "Bad checksum type"
 try:
 # py 2.4
     from base64 import b64encode
 except ImportError:
-# py 2.3
+# py 2.3 for RHEL4
     from base64 import encodestring as b64encode
 
 
@@ -56,7 +67,7 @@ class GetFile(func_module.FuncModule):
             return(checksum, '')
         fic.seek(bufsize*chunknum)
         chunk = b64encode(fic.read(bufsize))
-        mysha = sha.new()
+        mysha = hashlib.new('sha1')
         mysha.update(chunk)
         checksum = mysha.hexdigest()
         fic.close()
