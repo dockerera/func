@@ -43,6 +43,7 @@ class OverlordConfig(BaseConfig):
     key_file = Option('')
     cert_file = Option('')
     ca_file = Option('')
+    delegate = BoolOption(False)
     puppet_minions = BoolOption(False)
     puppet_inventory = Option('/var/lib/puppet/ssl/ca/inventory.txt')
     puppet_signed_certs_dir = Option('/var/lib/puppet/ssl/ca/signed')

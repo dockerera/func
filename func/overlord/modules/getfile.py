@@ -16,12 +16,24 @@
 """Get a file on the minions, chunk by chunk. Overlord side."""
 from func.overlord import overlord_module
 import os
-import sha
+
 try:
-    # py 2.4
+    # py 2.4+
+    import hashlib
+except ImportError:
+    # py 2.3 support for RHEL4
+    import sha
+    class hashlib:
+        @staticmethod
+        def new(algo):
+            if algo == 'sha1':
+                return sha.new()
+            raise ValueError, "Bad checksum type"
+try:
+    # py 2.4+
     from base64 import b64decode
 except ImportError:
-    # py 2.3
+    # py 2.3 support for RHEL4
     from base64 import decodestring as b64decode
 
 class getfile(overlord_module.BaseModule):
@@ -53,7 +65,7 @@ class getfile(overlord_module.BaseModule):
             status = 1
             return status, msg
 
-        nullsha = sha.new().hexdigest()
+        nullsha = hashlib.new('sha1').hexdigest()
         sourcebasename = os.path.basename(source)
         excluderrlist = [] 
 
@@ -70,7 +82,7 @@ class getfile(overlord_module.BaseModule):
                     # Probably a REMOTE_ERROR
                     excluderrlist.append(minion)
                     continue
-                mysha = sha.new()
+                mysha = hashlib.new('sha1')
                 mysha.update(chunk)
                 if checksum == -1:
                     # On this minion there was no file to get
