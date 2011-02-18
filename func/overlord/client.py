@@ -435,7 +435,7 @@ class Overlord(object):
 
     def __init__(self, server_spec, port=DEFAULT_PORT, interactive=False,
         verbose=False, noglobs=False, nforks=1, config=None, async=False, init_ssl=True,
-        delegate=False, mapfile=DEFAULT_MAPLOC, timeout=None,exclude_spec=None):
+        delegate=None, mapfile=DEFAULT_MAPLOC, timeout=None,exclude_spec=None):
         """
         Constructor.
         @server_spec -- something like "*.example.org" or "foosball"
@@ -480,6 +480,8 @@ class Overlord(object):
             self.async = False
 
         self.delegate    = delegate
+        if delegate is None:
+            self.delegate = self.config.delegate
         self.mapfile     = mapfile
         self.minionmap   = {}
 
@@ -497,7 +499,7 @@ class Overlord(object):
                 mapstream = file(self.mapfile, 'r').read()
                 self.minionmap = yaml.load(mapstream).next()
             except Exception, e:
-                sys.stderr.write("mapfile load failed, switching delegation off")
+                sys.stderr.write("mapfile load failed, switching delegation off\n")
                 self.delegate = False
 
         self.minions_class = self._mc(self.server_spec, port=self.port,

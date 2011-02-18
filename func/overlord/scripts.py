@@ -21,6 +21,10 @@ def base_func_parser(opthosts=True, outputpath=True, forkdef=40, timeoutdef=300)
                help='set the wait timeout for func commands')
     parser.add_option('--forks', default=forkdef, type='int',
                help='set the number of forks to start up')
+    parser.add_option('-d', '--delegate', default=None, action="store_true",
+               help="use delegation to make function call")
+    parser.add_option('--no-delegate', default=None, dest="delegate", action="store_false",
+               help="disable delegation when making function call")
     if outputpath:
         parser.add_option('--outputpath', default='/var/lib/func/data/', dest="outputpath",
                    help="basepath to store results/errors output.")

@@ -26,7 +26,7 @@ def main(args):
     if opts.host:
         hosts = ';'.join(opts.host)
 
-    fc = func.overlord.client.Client(hosts, timeout=opts.timeout, nforks=opts.forks)
+    fc = func.overlord.client.Client(hosts, timeout=opts.timeout, nforks=opts.forks, delegate=opts.delegate)
 
     print mycmd
     results = fc.command.run(mycmd)
