@@ -118,7 +118,7 @@ def __access_status(jobid=0, status=0, results=0, clear=False, write=False, purg
     except IOError, e:
         raise Func_Client_Exception, 'Cannot create status file. Ensure you have permission to write in %s directory' % dir
     fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-    internal_db = dbm.open(filename, 'c', 0644 )
+    internal_db = dbm.open(filename, 'c', 0600 )
     storage = shelve.Shelf(internal_db)
 
 
