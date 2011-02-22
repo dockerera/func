@@ -506,6 +506,8 @@ class Overlord(object):
                                 noglobs=self.noglobs, verbose=self.verbose,
                                 delegate=self.delegate,minionmap=self.minionmap,
                                 exclude_spec=self.exclude_spec)
+        # once we setup the minionsclass insert our current config object
+        self.minions_class.overlord_config = self.config
         self.minions = self.minions_class.get_urls()
 
         if len(self.minions) == 0:
@@ -517,6 +519,7 @@ class Overlord(object):
         self.methods = module_loader.load_methods('func/overlord/modules/', overlord_module.BaseModule, self)
 
     def setup_ssl(self, client_key=None, client_cert=None, ca=None):
+        self.ca = self.key = self.cert = ''
         # defaults go:
           # certmaster key, cert, ca
           # funcd key, cert, ca
@@ -541,11 +544,9 @@ class Overlord(object):
         if not os.access(self.ca, os.R_OK):
             self.ca = '%s/ca.cert' % self.cm_config.cert_dir
         if client_key and client_cert and ca:
-            if (os.access(client_key, os.R_OK) and os.access(client_cert, os.R_OK)
-                            and os.access(ca, os.R_OK)):
-                self.key = client_key
-                self.cert = client_cert
-                self.ca = ca
+            self.key = client_key
+            self.cert = client_cert
+            self.ca = ca
         # otherwise fall through our defaults
         elif os.access(ol_key, os.R_OK) and os.access(ol_crt, os.R_OK):
             self.key = ol_key
@@ -557,6 +558,14 @@ class Overlord(object):
             raise Func_Client_Exception, 'Cannot read ssl credentials: ssl, cert, ca. '+\
                   'Ensure you have permission to read files in /etc/pki/certmaster/ directory.'
 
+        if not os.access(self.ca, os.R_OK):
+            raise Func_Client_Exception, 'Cannot read ssl ca: %s' % self.ca
+        if not os.access(self.key, os.R_OK):
+            raise Func_Client_Exception, 'Cannot read ssl key: %s' % self.key
+        if not os.access(self.cert, os.R_OK):
+            raise Func_Client_Exception, 'Cannot read ssl cert: %s' % self.cert
+
+            
 
 
 
