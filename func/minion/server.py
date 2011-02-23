@@ -205,7 +205,9 @@ class FuncApiMethod:
         return rc
 
 
-def serve():
+
+
+def setup_server():
 
     """
     Code for starting the XMLRPC service.
@@ -216,6 +218,11 @@ def serve():
     if listen_port == '':
         listen_port = 51234
     server = FuncSSLXMLRPCServer((listen_addr, listen_port), config.module_list)
+    return server
+    
+def serve():
+
+    server = setup_server()
     server.logRequests = 0 # don't print stuff to console
     server.serve_forever()
 
@@ -265,6 +272,7 @@ class FuncSSLXMLRPCServer(AuthedXMLRPCServer.AuthedSSLXMLRPCServer,
 
         self._our_ca = certs.retrieve_cert_from_file(self.ca)
         self.acls = acls_mod.Acls(config=self.config)
+
 
         AuthedXMLRPCServer.AuthedSSLXMLRPCServer.__init__(self, args,
                                                           self.key, self.cert,
@@ -367,6 +375,31 @@ def main(argv):
         print >> sys.stderr, file("/etc/func/version").read().strip()
         sys.exit(0)
 
+    if "--info" in sys.argv:
+        server = setup_server()
+        print 'config:'
+        for l in str(server.config).split('\n'):
+            print '\t' + l
+            
+        print 'server name: %s' % server.server_name
+        print 'server listen addr: %s:%s' % server.server_address
+        print 'key file:  %s' % server.key
+        cert = certs.retrieve_cert_from_file(server.cert)
+        print 'cert dn: %s' % cert.get_subject().CN
+        print 'certificate hash: %s' % cert.subject_name_hash()
+        print 'cert file: %s' % server.cert
+        print 'ca file: %s' % server.ca
+        print 'modules loaded:'
+        for mn in sorted(server.modules.keys()):
+            print '\t' + mn
+        print 'acls:'
+        for (host, methods) in server.acls.acls:
+            print '\t' + host + ' : ' + str(methods)
+        print 'facts:'
+        for (n, meth) in server.fact_methods.items():
+            print '\t' + n + ' : ' + meth()
+        sys.exit(0)
+        
     if "daemon" in sys.argv or "--daemon" in sys.argv:
         utils.daemonize("/var/run/funcd.pid")
     else:
