@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-from certmaster.config import BaseConfig, BoolOption, Option, IntOption, FloatOption
+from certmaster.config import BaseConfig, BoolOption, Option, IntOption, FloatOption, ListOption
 
 FUNCD_CONFIG_FILE="/etc/func/minion.conf"
 OVERLORD_CONFIG_FILE="/etc/func/overlord.conf"
@@ -34,6 +34,8 @@ class FuncdConfig(BaseConfig):
     cert_file = Option('')
     key_file = Option('')
     crl_location = Option('')
+    module_list = ListOption([])
+
 
 class OverlordConfig(BaseConfig):
     socket_timeout = FloatOption(0)

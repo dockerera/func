@@ -215,7 +215,7 @@ def serve():
     listen_port = config.listen_port
     if listen_port == '':
         listen_port = 51234
-    server =FuncSSLXMLRPCServer((listen_addr, listen_port))
+    server = FuncSSLXMLRPCServer((listen_addr, listen_port), config.module_list)
     server.logRequests = 0 # don't print stuff to console
     server.serve_forever()
 
@@ -224,7 +224,7 @@ def serve():
 class FuncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, XmlRpcInterface):
 
     def __init__(self, args):
-
+        # DOES ANYTHING EVER USE THIS? SKV - 2011/02/23
         self.allow_reuse_address = True
 
         self.modules = module_loader.load_modules()
@@ -234,9 +234,9 @@ class FuncXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer, XmlRpcInterface):
 from func.minion.facts.minion_query import *
 class FuncSSLXMLRPCServer(AuthedXMLRPCServer.AuthedSSLXMLRPCServer,
                           XmlRpcInterface):
-    def __init__(self, args):
+    def __init__(self, args, module_list=[]):
         self.allow_reuse_address = True
-        self.modules = module_loader.load_modules()
+        self.modules = module_loader.load_modules(module_list = module_list)
 
         #load facts methods
         self.fact_methods = load_fact_methods()
@@ -244,7 +244,7 @@ class FuncSSLXMLRPCServer(AuthedXMLRPCServer.AuthedSSLXMLRPCServer,
 
         XmlRpcInterface.__init__(self)
         hn = func_utils.get_hostname_by_route()
-
+        
         if self.config.key_file != '':
             self.key = self.config.key_file
         else:
@@ -355,7 +355,8 @@ def main(argv):
 
     sys.excepthook = excepthook
     if len(sys.argv) > 1 and sys.argv[1] == "--list-modules":
-        module_names = module_loader.load_modules().keys()
+        config = read_config("/etc/func/minion.conf", FuncdConfig)
+        module_names = module_loader.load_modules(module_list = config.module_list).keys()
         module_names.sort()
         print "loaded modules:"
         for foo in module_names:

@@ -19,6 +19,8 @@ import sys
 import traceback
 import inspect
 from gettext import gettext
+import fnmatch
+
 _ = gettext
 
 
@@ -51,7 +53,8 @@ def load_methods(path, main_class, parent_class=None):
                 methods["%s.%s" % (x,method)]=getattr(modules[x], method)
     return methods
 
-def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule, blacklist=None, parent_class=None):
+def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule, 
+                 blacklist=None, parent_class=None, module_list=[]):
     log = logger.Logger().logger
     python_path = distutils.sysconfig.get_python_lib()
     module_file_path = "%s/%s" % (python_path, path)
@@ -84,6 +87,14 @@ def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule,
 
         mod_imp_name = pathname.replace("/", ".")
 
+        if module_list: # only do this if we have a module list at all, otherwise everything comes in
+            matched = False
+            for match in module_list:
+                if fnmatch.fnmatch(mod_imp_name, match):
+                    matched = True
+            if not matched: # if we are not matched against anything in the module_list then skip it
+                continue
+                
         if mods.has_key(mod_imp_name):
             # If we've already imported mod_imp_name, don't import it again
             continue
