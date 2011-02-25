@@ -384,16 +384,16 @@ def main(argv):
         print 'server name: %s' % server.server_name
         print 'server listen addr: %s:%s' % server.server_address
         print 'key file:  %s' % server.key
+        print 'cert file: %s' % server.cert
+        print 'ca file: %s' % server.ca
         cert = certs.retrieve_cert_from_file(server.cert)
         print 'cert dn: %s' % cert.get_subject().CN
         print 'certificate hash: %s' % cert.subject_name_hash()
-        print 'cert file: %s' % server.cert
-        print 'ca file: %s' % server.ca
         print 'modules loaded:'
         for mn in sorted(server.modules.keys()):
             print '\t' + mn
         print 'acls:'
-        for (host, methods) in server.acls.acls:
+        for (host, methods) in server.acls.acls.items():
             print '\t' + host + ' : ' + str(methods)
         print 'facts:'
         for (n, meth) in server.fact_methods.items():
