@@ -23,7 +23,11 @@ class SSL_Transport(xmlrpclib.Transport):
             # Yay for Python 2.2
             pass
         _host, _port = urllib.splitport(host)
-        return SSLCommon.HTTPS(_host, int(_port), ssl_context=self.ssl_ctx, timeout=self._timeout)
+        if hasattr(xmlrpclib.Transport, 'single_request'):
+            cnx_class = SSLCommon.HTTPSConnection
+        else:
+            cnx_class = SSLCommon.HTTPS
+        return cnx_class(_host, int(_port), ssl_context=self.ssl_ctx, timeout=self._timeout)
 
 
 class SSLXMLRPCServerProxy(xmlrpclib.ServerProxy):
