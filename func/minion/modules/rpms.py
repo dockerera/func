@@ -48,9 +48,9 @@ class RpmModule(func_module.FuncModule):
         Returns information on the verified package(s).
         """
         results = []
+        import yum
         for rpm in self.glob(pattern, False):
             name = rpm[0]
-
             yb = yum.YumBase()
             pkgs = yb.rpmdb.searchNevra(name)
             for pkg in pkgs:
