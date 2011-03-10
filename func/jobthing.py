@@ -37,7 +37,7 @@ JOB_ID_REMOTE_ERROR = 4
 RETAIN_INTERVAL = 60 * 60
 
 # where to store the internal job id database
-CACHE_DIR = "/var/lib/func"
+CACHE_DIR = utils.getCacheDir()
 
 def __update_status(jobid, status, results, clear=False):
     return __access_status(jobid=jobid, status=status, results=results, write=True)

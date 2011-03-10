@@ -157,6 +157,14 @@ class Minions(object):
                 return tmp_hosts,tmp_certs
             else:
                 each_gloob = shortest_path[0]
+        
+        if not os.access(self.cm_config.certroot, os.R_OK):
+            if self.overlord_config.allow_unknown_minions:
+                tmp_hosts.add(each_gloob)
+            else:
+                sys.stderr.write("Cannot read certs dir: %s and cannot use unknown minion\n" % (self.cm_config.certroot))
+            
+            return tmp_hosts,tmp_certs
 
         #actual_gloob = "%s/%s.%s" % (self.cm_config.certroot, each_gloob, self.cm_config.cert_extension)
         certs = func_utils.find_files_by_hostname(each_gloob, self.cm_config.certroot, self.cm_config.cert_extension)

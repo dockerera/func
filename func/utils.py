@@ -12,11 +12,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import inspect
 import os
+import pwd
 import socket
 import string
 import sys
 import re
 import fnmatch
+import tempfile
+import glob
+from stat import *
+
 
 from certmaster.config import read_config
 from certmaster.commonconfig import MinionConfig
@@ -215,6 +220,32 @@ def re_glob(s):
     if _re_compiled_glob_match is None:
         _re_compiled_glob_match = re.compile('[*?]|\[.+\]').search
     return _re_compiled_glob_match(s)
+    
+def getCacheDir(tmpdir='/var/tmp', reuse=True, prefix='func-'):
+    """return a path to a valid and safe cachedir - only used when not running
+       as root or when --tempcache is set"""
+    
+    uid = os.geteuid()
+    try:
+        usertup = pwd.getpwuid(uid)
+        username = usertup[0]
+    except KeyError:
+        return None # if it returns None then, well, it's bollocksed
+
+    if reuse:
+        # check for /var/tmp/func-username-* - 
+        prefix = '%s%s-' % (prefix, username)
+        dirpath = '%s/%s*' % (tmpdir, prefix)
+        cachedirs = sorted(glob.glob(dirpath))
+        for thisdir in cachedirs:
+            stats = os.lstat(thisdir)
+            if S_ISDIR(stats[0]) and S_IMODE(stats[0]) == 448 and stats[4] == uid:
+                return thisdir
+
+    # make the dir (tempfile.mkdtemp())
+    cachedir = tempfile.mkdtemp(prefix=prefix, dir=tmpdir)
+    return cachedir
+
 
 #################### PROGRESS BAR ##################################
 # The code below can be used for progress bar purposes as we will do

@@ -20,9 +20,10 @@ import dbm
 import sys
 import tempfile
 import fcntl
+from func import utils
 
 DEFAULT_FORKS = 4
-DEFAULT_CACHE_DIR = "/var/lib/func"
+DEFAULT_CACHE_DIR = utils.getCacheDir()
 
 def __get_storage(dir):
     """

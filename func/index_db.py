@@ -1,8 +1,8 @@
 import shelve
 import dbm
 import fcntl
+from func import utils
 
-MY_STORE = "/var/lib/func"
 INTERNAL_DB_FILE = "log_matcher"
 
 class IndexDb(object):
@@ -19,17 +19,14 @@ class IndexDb(object):
         """
         self.__storage = None
         self.__handle = None
-        self.__dir = dir
+        self.__dir = utils.getCacheDir()
 
     def __load_index(self):
         """
         Gets the store object for that instance
         """
         import os
-        if not self.__dir or not os.path.exists(self.__dir):
-            filename=os.path.join(MY_STORE,INTERNAL_DB_FILE)
-        else:
-            filename=os.path.join(self.__dir,INTERNAL_DB_FILE)
+        filename=os.path.join(self.__dir,INTERNAL_DB_FILE)
         try:
             self.__handle = open(filename,self.__mode)
         except IOError, e:
