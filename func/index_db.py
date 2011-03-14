@@ -34,7 +34,7 @@ class IndexDb(object):
             return False
 
         fcntl.flock(self.__handle.fileno(), fcntl.LOCK_EX)
-        internal_db = dbm.open(filename, 'c', 0644 )
+        internal_db = dbm.open(filename, 'c', 0600 )
         self.__storage = shelve.Shelf(internal_db)
         return True
 
