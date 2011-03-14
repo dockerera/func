@@ -495,7 +495,7 @@ class Virt(func_module.FuncModule):
         """
 
         self.__get_conn()
-        return self.conn.set_getMaxMemory(vmid)
+        return self.conn.get_MaxMemory(vmid)
 
     def set_memory(self, vmid, amount):
         """

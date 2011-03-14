@@ -13,7 +13,7 @@ from func.utils import is_error
 def main(args):
     parser = base_func_parser(outputpath=False)
     parser.add_option('--returncodes', action='store_true', help="prefix each line with the commands returncode")
-    parser.add_option('--oneline', action='store_true', help="output all things as one line - to make grepping easier, will not remove \n's from output of commands, though")
+    parser.add_option('--oneline', action='store_true', help="output all things as one line - to make grepping easier, will not remove \\n's from output of commands, though")
     parser.add_option('-o', '--output-to-dir', dest='output_dest', default=None,
           help="output each hosts results to a file in a dir named for the host")    
     opts, args = parser.parse_args(args)
