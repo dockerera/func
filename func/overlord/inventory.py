@@ -88,7 +88,7 @@ class FuncInventory(object):
 
             if utils.is_error(methods):
                 sys.stderr.write("-- connection refused: %s\n" % host)
-                break
+                continue
 
             for each_method in methods:
 
