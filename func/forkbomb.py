@@ -42,7 +42,7 @@ def __access_buckets(filename,clear,new_key=None,new_value=None):
 
     handle = open(filename,"w")
     fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
-    internal_db = dbm.open(filename, 'c', 0644 )
+    internal_db = dbm.open(filename, 'c', 0600 )
     storage = shelve.Shelf(internal_db)
 
     if clear:
