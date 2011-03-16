@@ -548,6 +548,9 @@ def main(args):
                     except FYError, e:
                         errorprint(str(e))
                     else:
+                        if item == 'updates': # don't print out empty update results
+                            if not info:
+                                continue
                         print '%s %s:' % (hn, item)
                         print info
                     print ''
