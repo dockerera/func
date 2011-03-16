@@ -85,8 +85,6 @@ def get_hostname_by_route():
     """
     # FIXME: this code ignores http proxies (which granted, we don't
     #      support elsewhere either.
-    hostname = None
-    ip = None
 
     minion_config_file = '/etc/func/minion.conf'
     minion_config = read_config(minion_config_file, FuncdConfig)
@@ -103,50 +101,37 @@ def get_hostname_by_route():
     server = cm_config.certmaster
     port = cm_config.certmaster_port
 
+    s = socket.socket()
+    s.settimeout(5)
+    s.connect_ex((server, port))
+    (intf, port) = s.getsockname()
+    s.close()
+
     try:
-        s = socket.socket()
-        s.settimeout(5)
-        s.connect((server, port))
-        (intf, port) = s.getsockname()
-         # this can fail if there is no reverse DNS available
-        intf_hostname = socket.gethostbyaddr(intf)[0]
-        ip = socket.gethostbyname(intf_hostname)
-        # not talking via localhost? good enough...
-        if ip != '127.0.0.1':
-            s.close()
-            return intf_hostname.lower()
+        return socket.gethostbyaddr(intf)[0]
     except:
-        s.close()
-        # something failed, reverse dns, etc
+        pass
 
     # try to find the hostname of the ip we're listening on
     if minion_config.listen_addr:
         try:
-            (hostname, aliases, ips) = socket.gethostbyaddr(minion_config.listen_addr)
+            return socket.gethostbyaddr(minion_config.listen_addr)[0]
         except:
-            hostname = None
+            pass
 
     # in an ideal world, this would return exactly what we want: the most meaningful hostname
     # for a system, but that is often not that case
-    if hostname is None:
-        hostname = socket.gethostname()
-
-    # "localhost" is a really crappy hostname, so is pretty much anything attached
-    # to 127.0.0.1, so try for something better
     try:
+        hostname = socket.gethostname()
         ip = socket.gethostbyname(hostname)
+        if ip != "127.0.0.1" and ip != "::1":
+            return hostname.lower()
     except:
-        hostname = None
-
-    # non loopback is about as good as we can do for a guess
-    if ip != "127.0.0.1" and hostname is not None:
-        return hostname.lower()
-
-
+        pass
 
     # all else has failed to get a good hostname, so just return
     # an ip address
-    return socket.gethostbyname(socket.gethostname()).lower() # yes I know it's an ip but I don't trust anything
+    return intf
 
 def find_files_by_hostname(hostglob, filepath, fileext=''):
     """look for files in the given filepath with the given extension that
