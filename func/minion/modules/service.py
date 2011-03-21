@@ -28,9 +28,9 @@ class Service(func_module.FuncModule):
 
         service_name = service_name.strip() # remove useless spaces
 
-        filename = os.path.join("/etc/rc.d/init.d/",service_name)
+        filename = os.path.join("/etc/init.d/",service_name)
         if os.path.exists(filename):
-            return sub_process.call(["/sbin/service", service_name, command], close_fds=True)
+            return sub_process.call(["/sbin/service", service_name, command], close_fds=True, env={ 'LANG':'C' })
         else:
             raise codes.FuncException("Service not installed: %s" % service_name)
 
@@ -79,15 +79,13 @@ class Service(func_module.FuncModule):
     grep = func_module.findout(grep)
 
 
-
-
     def get_enabled(self):
         """
         Get the list of services that are enabled at the various runlevels.  Xinetd services
         only provide whether or not they are running, not specific runlevel info.
         """
 
-        chkconfig = sub_process.Popen(["/sbin/chkconfig", "--list"], stdout=sub_process.PIPE, close_fds=True)
+        chkconfig = sub_process.Popen(["/sbin/chkconfig", "--list"], stdout=sub_process.PIPE, close_fds=True, env={ "LANG": "C" })
         data = chkconfig.communicate()[0]
         results = []
         for line in data.split("\n"):
@@ -106,13 +104,29 @@ class Service(func_module.FuncModule):
         """
         Get a list of which services are running, stopped, or disabled.
         """
-        chkconfig = sub_process.Popen(["/sbin/service", "--status-all"], stdout=sub_process.PIPE, close_fds=True)
-        data = chkconfig.communicate()[0]
         results = []
-        for line in data.split("\n"):
-            if line.find(" is ") != -1:
-                tokens = line.split()
-                results.append((tokens[0], tokens[-1].replace("...","")))
+
+        # Get services
+        services = self.get_enabled()
+
+        init_return_codes = { 0: 'running', 1: 'dead', 2:'locked', 3:'stopped' }
+
+        for service in services:
+            filename = os.path.join("/etc/init.d/",service[0])
+            # Run status for service
+            try:
+                init_exec = sub_process.Popen([filename, "status"], stdout=sub_process.PIPE, close_fds=True, env={ "LANG": "C" })
+            except Exception, e:
+                raise codes.FuncException("Service status error %s on initscript %s" % (e, filename))
+
+            # Get status output
+            data = init_exec.communicate()[0]
+
+            # Wait for command to complete
+            init_exec.wait()
+
+            # Append the result, service name, return status and status output
+            results.append((service[0], init_return_codes[init_exec.returncode], data))
         return results
 
     def register_method_args(self):
