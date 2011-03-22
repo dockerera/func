@@ -150,13 +150,14 @@ class Minions(object):
 
         # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
         if self.delegate:
-            try:
-                each_gloob = func_utils.get_all_host_aliases(each_gloob)[0]
-                shortest_path = dtools.get_shortest_path(each_gloob, self.minionmap)
-            except IndexError:
+            found_path = ''
+            for gloob in func_utils.get_all_host_aliases(each_gloob):
+                shortest_path = dtools.get_shortest_path(each_gloob,self.minionmap)
+                if shortest_path:
+                    found_path = shortest_path[0]
+            if not found_path:
                 return tmp_hosts,tmp_certs
-            else:
-                each_gloob = shortest_path[0]
+            each_gloob = shortest_path[0]
         
         if not os.access(self.cm_config.certroot, os.R_OK):
             if self.overlord_config.allow_unknown_minions:

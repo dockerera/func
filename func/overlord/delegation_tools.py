@@ -69,11 +69,11 @@ def get_paths_for_glob(glob_list, minionmap):
 
     pathlist = []
     for glob in glob_list.split(";"):
-        glob = func_utils.get_all_host_aliases(glob)[0]
-        for elem in match_glob_in_tree(glob,minionmap):
-            result = get_shortest_path(elem,minionmap)
-            if result not in pathlist: #prevents duplicates
-                pathlist.append(result)
+        for g in func_utils.get_all_host_aliases(glob):
+            for elem in match_glob_in_tree(g,minionmap):
+                result = get_shortest_path(elem,minionmap)
+                if result not in pathlist: #prevents duplicates
+                    pathlist.append(result)
     return pathlist
 
 def list_all_minions(minionmap):
