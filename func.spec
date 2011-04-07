@@ -5,7 +5,7 @@
 
 Summary: Remote management framework
 Name: func
-Version: 0.27
+Version: 0.28
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -13,7 +13,7 @@ Group: Applications/System
 Requires: python >= 2.3
 Requires: pyOpenSSL
 Requires: python-simplejson
-Requires: certmaster >= 0.27
+Requires: certmaster >= 0.28
 Requires: logrotate
 Requires: smolt
 BuildRequires: python-devel
@@ -168,6 +168,9 @@ fi
 
 
 %changelog
+* Thu Mar 31 2011 Seth Vidal <skvidal at fedoraproject.org> - 0.28-1
+- 0.28
+
 * Fri Oct  8 2010 Seth Vidal <skvidal at fedoraproject.org> - 0.27-2
 - add func-commands and func-yum
 
