@@ -48,7 +48,7 @@ def main(args):
     print mycmd
     results = fc.command.run(mycmd)
     for (hn, output) in results.items():
-        if is_error(output):
+        if is_error(output) or output[0] == 127:
             msg = 'Error: %s: ' % hn
             for item in output[1:3]:
                 if type(item) == type(''):
