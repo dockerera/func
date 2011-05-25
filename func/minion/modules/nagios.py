@@ -43,12 +43,12 @@ class Nagios(func_module.FuncModule):
 
     # Schedule 1 hour of downtime for the http service on www01.
     nagios_server.schedule_svc_downtime("www01.ext.mydomain.com",
-          ["http"], 60):
+          ["http"], 60)
 
     # Schedule 30 minutes (default) of downtime for the rsync
     # and nfs services on filer05.
     nagios_server.schedule_svc_downtime("filer05.int.mydomain.com",
-          ["rsync", "nfs"]):
+          ["rsync", "nfs"])
 
     # Schedule 30 minutes (default) of downtime the foobar host.
     nagios_server.schedule_host_downtime("foobar.mydomain.com")
