@@ -464,7 +464,7 @@ def search(hosts, opts, search_str, target=None):
 
 def get_host_list(hosts):
     fc = fclient.Client(hosts)
-    host_list = fc.minions_class.get_all_hosts() # grumble
+    host_list = fc.minions_class.get_all_up_hosts()
     return host_list
     
 def main(args):

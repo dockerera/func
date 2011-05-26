@@ -89,7 +89,7 @@ class Grep(base_command.BaseCommand):
 
         for host in host_modules.keys():
             host_only_mc = self.overlord_obj._mc(host, noglobs=True)
-            host_only_mc.get_all_hosts()
+            host_only_mc.get_all_up_hosts()
             self.overlord_obj.minions_class = host_only_mc
             for module in host_modules[host]:
                 if self.options.modules and module in self.options.modules:
@@ -125,7 +125,7 @@ class Grep(base_command.BaseCommand):
         if not hasattr(self, 'overlord_obj'):
             self.getOverlord()
 
-        hosts = self.overlord_obj.minions_class.get_all_hosts()
+        hosts = self.overlord_obj.minions_class.get_all_up_hosts()
         existent_minions_class = self.overlord_obj.minions_class # keep a copy
         if not hosts:
             raise Exception("No minions on system!")

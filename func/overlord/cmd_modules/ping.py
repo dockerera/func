@@ -52,12 +52,9 @@ class Ping(base_command.BaseCommand):
         minion_set = client.Minions(self.server_spec, port=self.port)
         if minion_set.overlord_config.puppet_minions:
             minion_set = client.PuppetMinions(self.server_spec, port=self.port)
-        servers = minion_set.get_all_hosts()
+        servers = minion_set.get_all_up_hosts()
 
         for server in servers:
-            if server in minion_set.downed_hosts:
-                continue
-
             overlord_obj = client.Overlord(server,
                                            interactive=False,
                                            verbose=self.verbose,
