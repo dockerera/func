@@ -181,8 +181,12 @@ class Virt(func_module.FuncModule):
                 "maxMem"    : str(data[1]),
                 "memory"    : str(data[2]),
                 "nrVirtCpu" : data[3],
-                "cpuTime"   : str(data[4])
+                "cpuTime"   : str(data[4]),
             }
+            thisvm = self.conn.find_vm(vm)
+            if hasattr(thisvm, 'autostart'):
+                info[vm]["autostart"] = thisvm.autostart()
+
         return info
 
     def nodeinfo(self):
