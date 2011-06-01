@@ -244,6 +244,13 @@ class Minions(object):
         #we keep it all the time as a set so
         return list(self.all_hosts)
 
+    def get_all_up_hosts(self):
+        """
+        Get current host list excluding down nodes
+        """
+        #we keep it all the time as a set so
+        return list(set(self.get_all_hosts()) - set(self.downed_hosts))
+
     def get_urls(self, hosts=[]):
         if not hosts:
             self._get_new_hosts()
