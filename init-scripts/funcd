@@ -9,8 +9,6 @@
 # Provides: funcd
 # Required-Start: network
 # Required-Stop:
-# Default-Start: 3 4 5
-# Default-Stop: 0 1 2 6
 # Short-Description: Fedora Unified Network Control
 # Description: Crazy simple, secure remote management.
 ### END INIT INFO
