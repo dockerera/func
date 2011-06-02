@@ -55,5 +55,8 @@ for (hn, vms) in sorted(results.items()):
     for (vm, info) in sorted(vms.items()):
         if vm == 'Domain-0':
             continue
-        print '%s:%s:%s' % (hn, vm, info['state'])
+        autostart = '?'
+        if 'autostart' in info:
+            autostart = info['autostart']
+        print '%s:%s:%s:%s' % (hn, vm, info['state'], autostart)
 
