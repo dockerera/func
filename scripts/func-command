@@ -60,22 +60,22 @@ def main(args):
             fo = open(opts.output_dest + '/' + hn+'.output', 'w')
             fo.write(mycmd + '\n')
             if opts.returncodes:
-                fo.write('%s:\nreturn code:%s\n%s\n' % (hn, output[0], output[1]))
+                fo.write('%s:\nreturn code:%s\n%s\n' % (hn, output[0], ' '.join(output[1:])))
             else:
-                fo.write('%s:\n%s\n' % (hn,output[1]))
+                fo.write('%s:\n%s\n' % (hn,' '.join(output[1:2])))
             fo.close()
             continue
 
         if opts.oneline:
             if opts.returncodes:
-                print '%s:%s:%s' % (hn, output[0], output[1])
+                print '%s:%s:%s' % (hn, output[0], ' '.join(output[1:]))
             else:
-                print '%s:%s' % (hn, output[1])
+                print '%s:%s' % (hn, output[1:2])
         else:
             if opts.returncodes:
-                print '%s:\nreturn code:%s\n%s' % (hn, output[0], output[1])
+                print '%s:\nreturn code:%s\n%s' % (hn, output[0], ' '.join(output[1:]))
             else:
-                print '%s:\n%s' % (hn, output[1])
+                print '%s:\n%s' % (hn, ' '.join(output[1:]))
 
     if opts.output_dest:
         print "output written to %s" % opts.output_dest
