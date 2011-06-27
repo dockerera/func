@@ -16,6 +16,7 @@ from func.jobthing import RETAIN_INTERVAL
 
 import sys
 import os
+from stat import *
 import time
 import shlex
 import subprocess
@@ -313,7 +314,7 @@ class PuppetMinions(Minions):
                  just_fqdns=False, groups_backend="conf",
                  delegate=False, minionmap={},exclude_spec=None,**kwargs):
         # local host_inv cache
-        self._host_inv = {}
+        self._cached_hosts = set([])
         self._revoked_serials = []
 
         Minions.__init__(self, spec, port=port, noglobs=noglobs, verbose=verbose,
@@ -328,8 +329,29 @@ class PuppetMinions(Minions):
         #these will be returned
         tmp_certs = set()
         tmp_hosts = set()
-        if not self._host_inv:
-            # get all hosts
+        
+        # if our cache file of hostnames is newer than both the inventory
+        # and the crl, then just read in that list of hostnames to a set
+        # and skip all of the below
+        if not self._cached_hosts:
+            cacheage = 0
+            invage = 1
+            crlage = 1
+            if os.access(self.overlord_config.puppet_minion_cache, os.R_OK) and os.exists(self.overlord_config.puppet_minion_cache):
+                cacheage = os.stat(self.overlord_config.puppet_minion_cache)[ST_MTIME]
+            if os.access(self.overlord_config.puppet_inventory, os.R_OK) and os.exists(self.overlord_config.puppet_inventory):
+                invage = os.stat(self.overlord_config.puppet_inventory)[ST_MTIME]
+            if os.access(self.overlord_config.puppet_crl, os.R_OK) and os.exists(self.overlord_config.puppet_crl):
+                crlage = os.stat(self.overlord_config.puppet_crl)[ST_MTIME]
+            if cacheage >= invage and cacheage >= crlage:
+                self._cached_hosts.update(set(open(self.overlord_config.puppet_minion_cache, 'r').readlines()))
+                
+        if not self._cached_hosts:
+            # overview
+            # get all hosts from the puppet inventory
+            # remove all the hosts which are revoked by serial
+            # write out this list as a cache so we can load it quickly
+            # in the future if nothing else has changed.
             if os.access(self.overlord_config.puppet_inventory, os.R_OK):
                 fo = open(self.overlord_config.puppet_inventory, 'r')
                 host_inv = {}
@@ -356,48 +378,58 @@ class PuppetMinions(Minions):
                             continue
                     host_inv[hn] = serial
                 fo.close()
-                self._host_inv = host_inv # store ours
+                # don't include the ones which are of revoked certs
+                self._return_revoked_serials(self.overlord_config.puppet_crl)
+                for hostname in host_inv.keys():
+                    if int(host_inv[hostname], 16) in self._revoked_serials:
+                        continue
+                    pempath = '%s/%s.pem' % (self.overlord_config.puppet_signed_certs_dir, hostname)
+                    if not os.path.exists(pempath):
+                        continue
+                    self._cached_hosts.add(hostname)
+                
+                # write out the cache of hosts minus the ones excluded by 
+                # revoked serials
+                if os.access(self.overlord_config.puppet_minion_cache, os.W_OK):
+                    hostcache = open(self.overlord_config.puppet_minion_cache, 'w')
+                    for host in self._cached_hosts:
+                        hostcache.write('%s\n' % host)
+                    hostcache.close()
+                    
+                
+               
+            # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
+            if self.delegate:
+                try:
+                    each_gloob = func_utils.get_all_host_aliases(each_gloob)[0]
+                    shortest_path = dtools.get_shortest_path(each_gloob, self.minionmap)
+                except IndexError:
+                    return tmp_hosts,tmp_certs
+                else:
+                    each_gloob = shortest_path[0]
 
-        # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
-        if self.delegate:
-            try:
-                each_gloob = func_utils.get_all_host_aliases(each_gloob)[0]
-                shortest_path = dtools.get_shortest_path(each_gloob, self.minionmap)
-            except IndexError:
-                return tmp_hosts,tmp_certs
-            else:
-                each_gloob = shortest_path[0]
+            for hostname in self._cached_hosts:
+                matched_gloob = False
+                if fnmatch.fnmatch(hostname, each_gloob):
+                    matched_gloob = True
+                    tmp_hosts.add(hostname)
 
-        # revoked certs
-        self._return_revoked_serials(self.overlord_config.puppet_crl)
-        for hostname in self._host_inv.keys():
-            if int(self._host_inv[hostname], 16) in self._revoked_serials:
-                continue
-            pempath = '%s/%s.pem' % (self.overlord_config.puppet_signed_certs_dir, hostname)
-            if not os.path.exists(pempath):
-                continue
-            matched_gloob = False
-            if fnmatch.fnmatch(hostname, each_gloob):
-                matched_gloob = True
-                tmp_hosts.add(hostname)
-
-            # if we can't match this gloob and the gloob is not REALLY a glob
-            # then toss this at gethostbyname_ex() and see if any of the cname
-            # or aliases matches _something_ we know about
-            if not matched_gloob and not func_utils.re_glob(each_gloob):
-                found_by_alias = False
-                aliases = func_utils.get_all_host_aliases(each_gloob)
-                for name in aliases:
-                    if name in self._host_inv and int(self._host_inv[name], 16) not in self._revoked_serials:
-                        if os.path.exists(self.overlord_config.puppet_signed_certs_dir + '/' + name + '.pem'):
+                # if we can't match this gloob and the gloob is not REALLY a glob
+                # then toss this at gethostbyname_ex() and see if any of the cname
+                # or aliases matches _something_ we know about
+                if not matched_gloob and not func_utils.re_glob(each_gloob):
+                    found_by_alias = False
+                    aliases = func_utils.get_all_host_aliases(each_gloob)
+                    for name in aliases:
+                        if name in self._cached_hosts:
                             tmp_hosts.add(name)
                             found_by_alias = True
                             break
 
-                if self.overlord_config.allow_unknown_minions and not found_by_alias:
-                    tmp_hosts.add(each_gloob)
+                    if self.overlord_config.allow_unknown_minions and not found_by_alias:
+                        tmp_hosts.add(each_gloob)
 
-                # don't return certs path - just hosts
+                    # don't return certs path - just hosts
 
         return tmp_hosts,tmp_certs
 
