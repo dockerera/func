@@ -337,14 +337,14 @@ class PuppetMinions(Minions):
             cacheage = 0
             invage = 1
             crlage = 1
-            if os.access(self.overlord_config.puppet_minion_cache, os.R_OK) and os.exists(self.overlord_config.puppet_minion_cache):
+            if os.access(self.overlord_config.puppet_minion_cache, os.R_OK) and os.path.exists(self.overlord_config.puppet_minion_cache):
                 cacheage = os.stat(self.overlord_config.puppet_minion_cache)[ST_MTIME]
-            if os.access(self.overlord_config.puppet_inventory, os.R_OK) and os.exists(self.overlord_config.puppet_inventory):
+            if os.access(self.overlord_config.puppet_inventory, os.R_OK) and os.path.exists(self.overlord_config.puppet_inventory):
                 invage = os.stat(self.overlord_config.puppet_inventory)[ST_MTIME]
-            if os.access(self.overlord_config.puppet_crl, os.R_OK) and os.exists(self.overlord_config.puppet_crl):
+            if os.access(self.overlord_config.puppet_crl, os.R_OK) and os.path.exists(self.overlord_config.puppet_crl):
                 crlage = os.stat(self.overlord_config.puppet_crl)[ST_MTIME]
             if cacheage >= invage and cacheage >= crlage:
-                self._cached_hosts.update(set(open(self.overlord_config.puppet_minion_cache, 'r').readlines()))
+                self._cached_hosts.update(set([ line.strip() for line in open(self.overlord_config.puppet_minion_cache, 'r').readlines()]))
                 
         if not self._cached_hosts:
             # overview
@@ -390,7 +390,7 @@ class PuppetMinions(Minions):
                 
                 # write out the cache of hosts minus the ones excluded by 
                 # revoked serials
-                if os.access(self.overlord_config.puppet_minion_cache, os.W_OK):
+                if os.access(os.path.dirname(self.overlord_config.puppet_minion_cache), os.W_OK):
                     hostcache = open(self.overlord_config.puppet_minion_cache, 'w')
                     for host in self._cached_hosts:
                         hostcache.write('%s\n' % host)
@@ -398,38 +398,38 @@ class PuppetMinions(Minions):
                     
                 
                
-            # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
-            if self.delegate:
-                try:
-                    each_gloob = func_utils.get_all_host_aliases(each_gloob)[0]
-                    shortest_path = dtools.get_shortest_path(each_gloob, self.minionmap)
-                except IndexError:
-                    return tmp_hosts,tmp_certs
-                else:
-                    each_gloob = shortest_path[0]
+        # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
+        if self.delegate:
+            try:
+                each_gloob = func_utils.get_all_host_aliases(each_gloob)[0]
+                shortest_path = dtools.get_shortest_path(each_gloob, self.minionmap)
+            except IndexError:
+                return tmp_hosts,tmp_certs
+            else:
+                each_gloob = shortest_path[0]
 
-            for hostname in self._cached_hosts:
-                matched_gloob = False
-                if fnmatch.fnmatch(hostname, each_gloob):
-                    matched_gloob = True
-                    tmp_hosts.add(hostname)
+        for hostname in self._cached_hosts:
+            matched_gloob = False
+            if fnmatch.fnmatch(hostname, each_gloob):
+                matched_gloob = True
+                tmp_hosts.add(hostname)
 
-                # if we can't match this gloob and the gloob is not REALLY a glob
-                # then toss this at gethostbyname_ex() and see if any of the cname
-                # or aliases matches _something_ we know about
-                if not matched_gloob and not func_utils.re_glob(each_gloob):
-                    found_by_alias = False
-                    aliases = func_utils.get_all_host_aliases(each_gloob)
-                    for name in aliases:
-                        if name in self._cached_hosts:
-                            tmp_hosts.add(name)
-                            found_by_alias = True
-                            break
+            # if we can't match this gloob and the gloob is not REALLY a glob
+            # then toss this at gethostbyname_ex() and see if any of the cname
+            # or aliases matches _something_ we know about
+            if not matched_gloob and not func_utils.re_glob(each_gloob):
+                found_by_alias = False
+                aliases = func_utils.get_all_host_aliases(each_gloob)
+                for name in aliases:
+                    if name in self._cached_hosts:
+                        tmp_hosts.add(name)
+                        found_by_alias = True
+                        break
 
-                    if self.overlord_config.allow_unknown_minions and not found_by_alias:
-                        tmp_hosts.add(each_gloob)
+                if self.overlord_config.allow_unknown_minions and not found_by_alias:
+                    tmp_hosts.add(each_gloob)
 
-                    # don't return certs path - just hosts
+                # don't return certs path - just hosts
 
         return tmp_hosts,tmp_certs
 
