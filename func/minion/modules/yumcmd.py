@@ -12,7 +12,6 @@
 
 # TODOS:
 # - config_dict handling
-# multiple commands in a single call - multiple() == yum shell
 # - permanent config changes
 # - better _makeresults() that doesn't make me kinda hurl and makes the output more sensible
 
@@ -35,28 +34,29 @@ def _makeresults(tsInfo):
 
     return results
 
-def _singleAction(action, items=[], config_dict={}, **kwargs):
-    #FIXME - config_dict needs to do the equiv of --setopt in the yumcli
+def _multiActions(action_tuples, config_dict={}, **kwargs):
+    #action tuple is action name(install/remove/erase/update) + item list
     import yum
     ayum = yum.YumBase()
     ayum.doGenericSetup()
     ayum.doRepoSetup()
-    if type(items) == type([]):
-        pkglist = []
-        for p in items:
-            pkglist.extend(p.split(' '))
-    else:
-        if items:
-            pkglist = items.split(' ')
-        else:
+    ayum.doLock()
+    results = ''
+    for (action, items) in action_tuples:
+        if type(items) == type([]):
             pkglist = []
+            for p in items:
+                pkglist.extend(p.split(' '))
+        else:
+            if items:
+                pkglist = items.split(' ')
+            else:
+                pkglist = []
 
-    if len(pkglist) == 0 and action not in ('update', 'upgrade'):
-        raise FuncException("%s requires at least one pkg" % action)
-
-    results = 'command: %s %s\n' % (action, ' '.join(pkglist))
-    try:
-        ayum.doLock()
+        if len(pkglist) == 0 and action not in ('update', 'upgrade'):
+            raise FuncException("%s requires at least one pkg" % action)
+        
+        results += 'command: %s %s\n' % (action, ' '.join(pkglist))
         if pkglist:
             for p in pkglist:
                 tx_mbrs = []
@@ -73,15 +73,17 @@ def _singleAction(action, items=[], config_dict={}, **kwargs):
 
         else:
             ayum.update()
-
+    try:
         ayum.buildTransaction()
-        ayum.processTransaction(
-                callback=DummyCallback())
+        ayum.processTransaction(callback=DummyCallback())
     finally:
         results += _makeresults(ayum.tsInfo)
         ayum.closeRpmDB()
         ayum.doUnlock()
     return results
+    
+def _singleAction(action, items=[], config_dict={}, **kwargs):
+    return _multiActions([(action, items)], config_dict, *kwargs)
 
 class Yum(func_module.FuncModule):
 
@@ -108,9 +110,14 @@ class Yum(func_module.FuncModule):
     def remove(self, pkg=None, config_dict={}):
         return _singleAction('remove', items=pkg, config_dict=config_dict)
 
-    #def multiple(self, cmdlist=[]):
-    #    """take multiple commands as a single transaction - equiv of yum shell"""
-    #    raise FuncException("Not Implemented Yet!"
+    def multiple(self, cmdlist=[], config_dict={}):
+        """take multiple commands as a single transaction - equiv of yum shell"""
+        action_tuples = [] # it's a list of tuples, yes
+        for c in cmdlist:
+            cmd  = c.split()[0]
+            items = c.split()[1:]
+            action_tuples.append((cmd, items))
+        return _multiActions(action_tuples, config_dict={})
 
     def get_package_lists(self, pkgspec='installed,available,obsoletes,updates,extras', config_dict={}):
         import yum
