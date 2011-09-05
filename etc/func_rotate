@@ -1,20 +1,12 @@
-/var/log/func/audit.log {
+/var/log/func/*.log {
    missingok
    notifempty
    rotate 4
    weekly
+   sharedscripts
    postrotate
       if [ -f /var/lock/subsys/funcd ]; then
          /etc/init.d/funcd condrestart > /dev/null
       fi
    endscript
 }
-
-/var/log/func/func.log {
-   missingok
-   notifempty
-   copytruncate
-   rotate 4
-   weekly
-}
-
