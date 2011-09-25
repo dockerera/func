@@ -6,7 +6,7 @@
 # general public license version 2.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from certmaster.config import BaseConfig, Option
 import func_module
@@ -42,28 +42,34 @@ class Nagios(func_module.FuncModule):
     nagios_server = fc.Client("nagios.mydomain.com")
 
     # Schedule 1 hour of downtime for the http service on www01.
-    nagios_server.schedule_svc_downtime("www01.ext.mydomain.com",
+    nagios_server.nagios.schedule_svc_downtime("www01.ext.mydomain.com",
           ["http"], 60)
 
     # Schedule 30 minutes (default) of downtime for the rsync
     # and nfs services on filer05.
-    nagios_server.schedule_svc_downtime("filer05.int.mydomain.com",
+    nagios_server.nagios.schedule_svc_downtime("filer05.int.mydomain.com",
           ["rsync", "nfs"])
 
     # Schedule 30 minutes (default) of downtime the foobar host.
-    nagios_server.schedule_host_downtime("foobar.mydomain.com")
+    nagios_server.nagios.schedule_host_downtime("foobar.mydomain.com")
 
     # Reenable notifications for all services on the foobar host.
-    nagios_server.enable_host_svc_notifications("foobar.mydomain.com")
+    nagios_server.nagios.enable_host_svc_notifications("foobar.mydomain.com")
 
     # Disable notifications for the foo and bar services on the
     # megafrobber host.
-    nagios_server.disable_svc_notifications("megafrobber.mydomain.com",
+    nagios_server.nagios.disable_svc_notifications("megafrobber.mydomain.com",
           ["foo", "bar"])
+
+    # Stop all notifications for a host and the services on a host
+    nagios_server.nagios.silence_host("megafrobber.mydomain.com")
+
+    # Enable all notifications for a host and the services on it
+    nagios_server.nagios.unsilence_host("megafrobber.mydomain.com")
     """
 
-    version = "0.8.0"
-    api_version = "0.8.0"
+    version = "0.9.0"
+    api_version = "0.9.0"
     description = "Schedule downtime and handle notifications in Nagios."
 
     class Config(BaseConfig):
@@ -577,5 +583,61 @@ class Nagios(func_module.FuncModule):
 
         if nagios_return:
             return notif_str
+        else:
+            return "Fail: could not write to the command file"
+
+    def silence_host(self, host):
+        """
+        This command is used to prevent notifications from being sent
+        out for the host and all services on the specified host.
+
+        This is equivalent to calling disable_host_svc_notifications
+        and disable_host_notifications.
+
+        Syntax: DISABLE_HOST_SVC_NOTIFICATIONS;<host_name>
+        Syntax: DISABLE_HOST_NOTIFICATIONS;<host_name>
+        """
+
+        cmd = [
+            "DISABLE_HOST_SVC_NOTIFICATIONS",
+            "DISABLE_HOST_NOTIFICATIONS"
+            ]
+        nagios_return = True
+        return_str_list = []
+        for c in cmd:
+            notif_str = self._fmt_notif_str(c, host)
+            nagios_return = nagios_return and self._write_command(notif_str)
+            return_str_list.append(notif_str)
+
+        if nagios_return:
+            return return_str_list
+        else:
+            return "Fail: could not write to the command file"
+
+    def unsilence_host(self, host):
+        """
+        This command is used to enable notifications for the host and
+        all services on the specified host.
+
+        This is equivalent to calling enable_host_svc_notifications
+        and enable_host_notifications.
+
+        Syntax: ENABLE_HOST_SVC_NOTIFICATIONS;<host_name>
+        Syntax: ENABLE_HOST_NOTIFICATIONS;<host_name>
+        """
+
+        cmd = [
+            "ENABLE_HOST_SVC_NOTIFICATIONS",
+            "ENABLE_HOST_NOTIFICATIONS"
+            ]
+        nagios_return = True
+        return_str_list = []
+        for c in cmd:
+            notif_str = self._fmt_notif_str(c, host)
+            nagios_return = nagios_return and self._write_command(notif_str)
+            return_str_list.append(notif_str)
+
+        if nagios_return:
+            return return_str_list
         else:
             return "Fail: could not write to the command file"
