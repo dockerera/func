@@ -10,26 +10,38 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 """
-Abitrary command execution module for func.
+Arbitrary command execution module for func.
 """
 
+from certmaster.config import BaseConfig, Option
 import func_module
-import sub_process
+try:
+    import subprocess
+#Needed for compatibility with Python < 2.4
+except ImportError:
+    from func.minion import sub_process as subprocess
 
-class Nagios(func_module.FuncModule):
+class NagiosCheck(func_module.FuncModule):
 
-    version = "0.0.1"
+    version = "0.0.2"
     api_version = "0.0.1"
-    description = "Runs nagios checks."
+    description = "Runs Nagios checks."
+
+    class Config(BaseConfig):
+        nagios_path = Option('/usr/lib/nagios/plugins')
 
     def run(self, check_command):
         """
-        Runs a nagios check returning the return code, stdout, and stderr as a tuple.
+        Runs a Nagios check gathering the return code, stdout, and stderr 
+        as a tuple.
         """
-        nagios_path='/usr/lib/nagios/plugins'
-        command = '%s/%s' % (nagios_path, check_command)
+        command = '%s/%s' % (self.options.nagios_path, check_command)
 
-        cmdref = sub_process.Popen(command.split(),stdout=sub_process.PIPE,stderr=sub_process.PIPE, shell=False, close_fds=True)
+        cmdref = subprocess.Popen(command.split(),
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, 
+                                   shell=False, close_fds=True)
+        
         data = cmdref.communicate()
         return (cmdref.returncode, data[0], data[1])
 
