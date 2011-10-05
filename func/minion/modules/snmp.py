@@ -20,7 +20,7 @@ try:
 except ImportError:
     from func.minion import sub_process as subprocess
 
-base_snmp_command = '/usr/bin/snmpget -v2c -Ov -OQ'
+from certmaster.config import BaseConfig, Option
 
 
 class Snmp(func_module.FuncModule):
@@ -29,12 +29,18 @@ class Snmp(func_module.FuncModule):
     api_version = "0.0.1"
     description = "SNMP related calls through FUNC."
 
+    class Config(BaseConfig):
+        snmpget = Option('/usr/bin/snmpget')
+
     def get(self, oid, rocommunity, hostname='localhost'):
         """
         Runs an snmpget on a specific oid returns the output of the call.
         """
-        command = '%s -c %s %s %s' % (base_snmp_command, rocommunity,
-                                      hostname, oid)
+        snmpget_options = '-v2c -Ov -OQ'
+
+        command = '%s %s -c %s %s %s' % (self.options.snmpget,
+                                         snmpget_options, rocommunity,
+                                         hostname, oid)
 
         cmdref = subprocess.Popen(command.split(), stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE, shell=False,
