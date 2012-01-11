@@ -32,7 +32,7 @@ def __get_storage(dir):
     dir = os.path.expanduser(dir)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    return tempfile.mkstemp(suffix='', prefix='asynctmp', dir=dir)[1]
+    return tempfile.mkstemp(suffix='', prefix='asynctmp', dir=dir)
 
 def __access_buckets(filename,clear,new_key=None,new_value=None):
     """
@@ -48,7 +48,9 @@ def __access_buckets(filename,clear,new_key=None,new_value=None):
     if clear:
         storage.clear()
         storage.close()
+        internal_db.close()
         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        handle.close()
         return {}
 
     if not storage.has_key("data"):
@@ -64,7 +66,9 @@ def __access_buckets(filename,clear,new_key=None,new_value=None):
 
     rc = storage["data"].copy()
     storage.close()
+    internal_db.close()
     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    handle.close()
 
     return rc
 
@@ -135,13 +139,15 @@ def batch_run(pool,callback,nforks=DEFAULT_FORKS,cachedir=DEFAULT_CACHE_DIR):
     if nforks < 1:
         # modulus voodoo gets crazy otherwise and bad things happen
         nforks = 1
-    shelf_file = __get_storage(cachedir)
+    shelf_file_obj = __get_storage(cachedir)
+    shelf_file = shelf_file_obj[1]
     __access_buckets(shelf_file,True,None)
     buckets = __bucketize(pool, nforks)
     __forkbomb(0,buckets,callback,shelf_file)
     rc = __access_buckets(shelf_file,False,None)
 
     try: #it's only cleanup so don't care if the files disapeared
+        os.close(shelf_file_obj[0])
         os.remove(shelf_file)
         os.remove(shelf_file+".pag")
         os.remove(shelf_file+".dir")
