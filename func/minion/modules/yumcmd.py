@@ -38,7 +38,6 @@ def _multiActions(action_tuples, config_dict={}, **kwargs):
     #action tuple is action name(install/remove/erase/update) + item list
     import yum
     ayum = yum.YumBase()
-    ayum.doGenericSetup()
     ayum.doRepoSetup()
     ayum.doLock()
     results = ''
@@ -122,7 +121,6 @@ class Yum(func_module.FuncModule):
     def get_package_lists(self, pkgspec='installed,available,obsoletes,updates,extras', config_dict={}):
         import yum
         ayum = yum.YumBase()
-        ayum.doGenericSetup()
         ayum.doRepoSetup()
         resultsdict = {}
         pkgspec = pkgspec.replace(',',' ')
