@@ -942,7 +942,7 @@ class Overlord(object):
             spec = kwargs['suboverlord'] #the sub-overlord directly beneath this one
             minions_hosts = self.minions_class.get_hosts_for_spec(spec)
             use_delegate = True #signal to process_server to call delegate method
-            minionurls = self.minions_class.get_urls(hosts=minion_hosts) #the single-item url list to make async
+            minionurls = self.minions_class.get_urls(hosts=minions_hosts) #the single-item url list to make async
                                               #tools such as jobthing/forkbomb happy
         else: #we're directly calling minions, so treat everything normally
             spec = self.server_spec
