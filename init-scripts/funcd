@@ -31,7 +31,7 @@ CONFIG_ARGS="--daemon"
 
 FuncStatus()
 {
-  ps wt? | grep "$DAEMON" 2>&1 > /dev/null
+  ps wt? | grep $(echo "$DAEMON" | sed "s/^\(.\)/[\1]/g") 2>&1 > /dev/null
   if [ "x$?" = "x0" ]; then
     RVAL=0
     echo "$DAEMON is running"
