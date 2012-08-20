@@ -29,7 +29,7 @@ from func.overlord import base_command
 from func.overlord import client
 
 
-class CopyFile(base_command.BaseCommand):
+class GetFile(base_command.BaseCommand):
     name = "getfile"
     usage = "\n  getfile -l localdir -r remotesource\n    remotesource = file to download from the specified minions\n    localdir = directory in which to put the downloaded files"
     summary = "get a file from minions"
