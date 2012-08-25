@@ -50,7 +50,7 @@ class AuthedSimpleXMLRPCRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHan
             sys.stderr.write("Error (%s): socket error - '%s'\n" % (self.client_address, e))
 
 
-class BaseAuthedXMLRPCServer(SocketServer.ForkingMixIn):
+class BaseAuthedXMLRPCServer(SocketServer.ThreadingMixIn):
     def __init__(self, address, authinfo_callback=None):
         # collect_children is only called in process_request, so at least the last process 
         # forked is not collected and becomes zombie. workaround it by setting the timeout

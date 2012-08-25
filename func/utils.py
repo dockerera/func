@@ -182,6 +182,8 @@ def get_fresh_method_instance(function_ref):
         return function_ref
     else:
         try:
+            # check if the module want to be single
+            assert not (hasattr(function_ref.im_self,"_single") and function_ref.im_self._single)
             fresh_instance = function_ref.im_self.__class__()
         except Exception,e:
             #something went wrong so we return the normal reference value

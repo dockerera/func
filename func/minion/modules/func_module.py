@@ -76,6 +76,8 @@ class FuncModule(object):
     version = "0.0.0"
     api_version = "0.0.0"
     description = "No Description provided"
+    
+    _single = False
 
     class Config(BaseConfig):
         pass
