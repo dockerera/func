@@ -5,7 +5,7 @@
 
 Summary: Remote management framework
 Name: func
-Version: 0.28
+Version: 0.29
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -15,7 +15,6 @@ Requires: pyOpenSSL
 Requires: python-simplejson
 Requires: certmaster >= 0.28
 Requires: logrotate
-Requires: smolt
 BuildRequires: python-devel
 %if %is_suse
 BuildRequires: gettext-devel
