@@ -5,7 +5,7 @@
 
 Summary: Remote management framework
 Name: func
-Version: 0.28
+Version: 0.30
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPLv2+
@@ -15,7 +15,6 @@ Requires: pyOpenSSL
 Requires: python-simplejson
 Requires: certmaster >= 0.28
 Requires: logrotate
-Requires: smolt
 BuildRequires: python-devel
 %if %is_suse
 BuildRequires: gettext-devel
@@ -168,6 +167,14 @@ fi
 
 
 %changelog
+* Mon Oct 15 2012 Steve Salevan <ssalevan at fedoraproject.org> - 0.30-1
+- v0.30 release:
+- Added copyfile improvements
+- Improvements to all func-* scripts
+- Delegation improvements
+- Stability improvements
+- Removing dependency on smolt
+
 * Thu Mar 31 2011 Seth Vidal <skvidal at fedoraproject.org> - 0.28-1
 - 0.28
 
