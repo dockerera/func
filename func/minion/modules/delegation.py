@@ -20,13 +20,21 @@ from func.overlord import delegation_tools as dtools
 DIRECT = False
 DELEGATED = True
 
+#constant value (which you can change at the vassal level) which determines
+#how much the value from determine_group_timeout is multiplied
+GROUP_TIMEOUT_MULTIPLIER = 2
+
+def determine_group_timeout(group, timeout):
+    num_minions = len(dtools.flatten_list(group))
+    return timeout*num_minions*GROUP_TIMEOUT_MULTIPLIER
+
 class DelegationModule(func_module.FuncModule):
 
     version = "0.0.1"
     api_version = "0.0.1"
     description = "Minion-side module to support delegation on sub-Overlords."
 
-    def run(self,module,method,args,delegation_list,async,nforks):
+    def run(self,module,method,args,delegation_list,async,nforks,timeout):
         """
         Delegates commands down the path of delegation
         supplied as an argument
@@ -40,16 +48,18 @@ class DelegationModule(func_module.FuncModule):
 
         #run delegated calls
         for group in grouped_paths.keys():
+            path_list = grouped_paths[group]
             overlord = fc.Overlord(group,
                                    async=async,
-                                   nforks=nforks)
-            path_list = grouped_paths[group]
+                                   nforks=nforks,
+                                   timeout=determine_group_timeout(path_list, timeout))
             delegation_results = overlord.delegation.run(module,
                                                          method,
                                                          args,
                                                          path_list,
                                                          async,
-                                                         nforks)
+                                                         nforks,
+                                                         timeout)
             if async:
                 job_id_list.append([overlord,
                                     delegation_results,
@@ -63,20 +73,21 @@ class DelegationModule(func_module.FuncModule):
                 else:
                     result_dict.update(delegation_results[group])
 
-        #run direct calls
-        for minion in single_paths:
-            overlord = fc.Overlord(minion,
-                                   async=async,
-                                   nforks=nforks)
-            overlord_module = getattr(overlord,module)
-            results = getattr(overlord_module,method)(*args[:])
-            if async:
-                job_id_list.append([overlord,
-                                    results,
-                                    minion,
-                                    False])
-            else:
-                result_dict.update(results)
+        # Concat all minions to a server_spec in order to make use of forks
+        minion = ";".join(single_paths)
+        overlord = fc.Overlord(minion, 
+                               async=async,
+                               nforks=nforks,
+                               timeout=timeout)
+        overlord_module = getattr(overlord,module)
+        results = getattr(overlord_module,method)(*args[:])
+        if async:
+            job_id_list.append([overlord,
+                                results,
+                                minion,
+                                False])
+        else:
+            result_dict.update(results)
 
         #poll async calls
         while len(job_id_list) > 0:

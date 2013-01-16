@@ -483,7 +483,7 @@ class Overlord(object):
 
     def __init__(self, server_spec, port=DEFAULT_PORT, interactive=False,
         verbose=False, noglobs=False, nforks=1, config=None, async=False, init_ssl=True,
-        delegate=None, mapfile=DEFAULT_MAPLOC, timeout=None,exclude_spec=None):
+        delegate=False, mapfile=DEFAULT_MAPLOC, timeout=None, exclude_spec=None):
         """
         Constructor.
         @server_spec -- something like "*.example.org" or "foosball"
@@ -504,6 +504,7 @@ class Overlord(object):
 
         self.server_spec = server_spec
         self.exclude_spec = exclude_spec
+        # we could make this settable in overlord.conf as well
         self.port        = port
         if self.config.listen_port:
             self.port    = self.config.listen_port
@@ -527,6 +528,7 @@ class Overlord(object):
         if async is None:
             self.async = False
 
+<<<<<<< HEAD
         self.delegate    = delegate
         if delegate is None:
             self.delegate = self.config.delegate
@@ -535,8 +537,15 @@ class Overlord(object):
 
         self.allow_unknown_minions = self.config.allow_unknown_minions
 
+=======
+>>>>>>> ixs-delegation
         #overlord_query stuff
         self.overlord_query = OverlordQuery()
+
+        self.delegate    = delegate
+        self.mapfile     = mapfile
+        self.minionmap   = {}
+
         if self.config.puppet_minions:
             self._mc = PuppetMinions
         else:
@@ -546,6 +555,7 @@ class Overlord(object):
             try:
                 mapstream = file(self.mapfile, 'r').read()
                 self.minionmap = yaml.load(mapstream).next()
+<<<<<<< HEAD
             except Exception, e:
                 sys.stderr.write("mapfile load failed, switching delegation off\n")
                 self.delegate = False
@@ -561,6 +571,19 @@ class Overlord(object):
         if len(self.minions) == 0:
             raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\". ' % self.server_spec
 
+=======
+            except:
+                sys.stderr.write("mapfile load failed, switching delegation off\n")
+                self.delegate = False
+
+        self.minions_class = Minions(self.server_spec, 
+            port=self.port, noglobs=self.noglobs, verbose=self.verbose,exclude_spec=self.exclude_spec,
+            delegate=self.delegate, minionmap=self.minionmap)
+        self.minions = self.minions_class.get_urls()
+        if len(self.minions) == 0 and len(dtools.match_glob_in_tree(self.server_spec, self.minionmap)) == 0:
+            raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\".' % self.server_spec
+        
+>>>>>>> ixs-delegation
         if init_ssl:
             self.setup_ssl()
 
@@ -770,7 +793,7 @@ class Overlord(object):
 
     # -----------------------------------------------
 
-    def run(self, module, method, args, nforks=1):
+    def run(self, module, method, args, nforks=1, timeout=self.timeout):
         """
         Invoke a remote method on one or more servers.
         Run returns a hash, the keys are server names, the values are the
@@ -788,7 +811,7 @@ class Overlord(object):
                 raise AttributeError("No such local method: %s" % method)
 
         if not self.delegate: #delegation is turned off, so run normally
-            minion_result = self.run_direct(module, method, args, nforks)
+            minion_result = self.run_direct(module, method, args, nforks, timeout)
             if self.overlord_query.fact_query:
                 return self.overlord_query.display_active(minion_result)
             else:
@@ -809,15 +832,22 @@ class Overlord(object):
                                               method,
                                               args,
                                               nforks,
+                                              timeout,
                                               call_path=grouped_paths[group],
                                               suboverlord=group))
 
         #Next, we run everything that can be run directly beneath this overlord
         #Why do we do this after delegation calls?  Imagine what happens when
         #reboot is called...
+<<<<<<< HEAD
         if single_paths != []:
             directhash.update(self.run_direct(module,method,args,nforks))
 
+=======
+        if len(self.minions) > 0:
+            directhash.update(self.run_direct(module,method,args,nforks,timeout))
+        
+>>>>>>> ixs-delegation
         #poll async results if we've async turned on
         if self.async:
             while (len(delegatedhash) + len(directhash)) > 0:
@@ -863,7 +893,7 @@ class Overlord(object):
 
     # -----------------------------------------------
 
-    def run_direct(self, module, method, args, nforks=1, *extraargs, **kwargs):
+    def run_direct(self, module, method, args, nforks=1, timeout=self.timeout, *extraargs, **kwargs):
         """
         Invoke a remote method on one or more servers.
         Run returns a hash, the keys are server names, the values are the
@@ -883,7 +913,8 @@ class Overlord(object):
 
 
         def process_server(bucketnumber, buckets, server):
-            conn = sslclient.FuncServer(server, self.key, self.cert, self.ca, self.timeout)
+            
+            conn = sslclient.FuncServer(server, self.key, self.cert, self.ca, timeout)
             # conn = xmlrpclib.ServerProxy(server)
 
             if self.interactive:
@@ -915,7 +946,8 @@ class Overlord(object):
                                                  args,
                                                  delegation_path,
                                                  self.async,
-                                                 self.nforks)
+                                                 self.nforks,
+                                                 timeout)
                 else:
                     retval = getattr(conn, meth)(*args[:])
 
@@ -955,10 +987,10 @@ class Overlord(object):
             if self.nforks > 1 or self.async:
                 # using forkbomb module to distribute job over multiple threads
                 if not self.async:
-                    results = forkbomb.batch_run(minionurls, process_server, nforks)
+                    results = forkbomb.batch_run(minionurls, process_server, self.nforks)
                 else:
                     minion_info =dict(spec=spec,module=module,method=method)
-                    results = jobthing.batch_run(minionurls, process_server,nforks,**minion_info)
+                    results = jobthing.batch_run(minionurls, process_server, self.nforks, **minion_info)
             else:
                 # no need to go through the fork code, we can do this directly
                 results = {}
