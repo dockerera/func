@@ -528,7 +528,6 @@ class Overlord(object):
         if async is None:
             self.async = False
 
-<<<<<<< HEAD
         self.delegate    = delegate
         if delegate is None:
             self.delegate = self.config.delegate
@@ -557,10 +556,14 @@ class Overlord(object):
                 sys.stderr.write("mapfile load failed, switching delegation off\n")
                 self.delegate = False
 
-        self.minions_class = Minions(self.server_spec, 
-            port=self.port, noglobs=self.noglobs, verbose=self.verbose,exclude_spec=self.exclude_spec,
-            delegate=self.delegate, minionmap=self.minionmap)
+        self.minions_class = self._mc(self.server_spec, port=self.port,
+                                noglobs=self.noglobs, verbose=self.verbose,
+                                delegate=self.delegate,minionmap=self.minionmap,
+                                exclude_spec=self.exclude_spec)
+        # once we setup the minionsclass insert our current config object
+        self.minions_class.overlord_config = self.config
         self.minions = self.minions_class.get_urls()
+
         if len(self.minions) == 0 and len(dtools.match_glob_in_tree(self.server_spec, self.minionmap)) == 0:
             raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\".' % self.server_spec
         
