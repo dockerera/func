@@ -20,13 +20,13 @@ class InlineTokenizer:
 
     def up_to_comma(self):
         match = re.match('(.*?)\s*, (.*)', self.data)
-        if match: 
+        if match:
             self.data = match.groups()[1]
             return match.groups()[0]
 
     def up_to_end_brace(self):
         match = re.match('(.*?)(\s*[\]}].*)', self.data)
-        if match: 
+        if match:
             self.data = match.groups()[1]
             return match.groups()[0]
 
@@ -41,4 +41,3 @@ class InlineTokenizer:
             token = production()
             if token:
                 return token
-

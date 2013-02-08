@@ -54,7 +54,7 @@ def _multiActions(action_tuples, config_dict={}, **kwargs):
 
         if len(pkglist) == 0 and action not in ('update', 'upgrade'):
             raise FuncException("%s requires at least one pkg" % action)
-        
+
         results += 'command: %s %s\n' % (action, ' '.join(pkglist))
         if pkglist:
             for p in pkglist:
@@ -80,7 +80,7 @@ def _multiActions(action_tuples, config_dict={}, **kwargs):
         ayum.closeRpmDB()
         ayum.doUnlock()
     return results
-    
+
 def _singleAction(action, items=[], config_dict={}, **kwargs):
     return _multiActions([(action, items)], config_dict, *kwargs)
 

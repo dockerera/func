@@ -59,7 +59,7 @@ def eatNewLines(stream):
         line = stream.get()
         if line is None or len(string.strip(line)):
             return line
- 
+
 COMMENT_LINE_REGEX = re.compile(R"\s*#")
 def isComment(line):
     return line is not None and COMMENT_LINE_REGEX.match(line)
@@ -109,7 +109,7 @@ class NestedText:
             if indentLevel(nextLine) >= self.indentLevel:
                 return nextLine[self.indentLevel:]
             elif nextLine == '':
-                return ''                
+                return ''
 
     def pop(self):
         line = self.peek()
@@ -141,10 +141,10 @@ class NestedText:
 
     def nestBySpecificAmount(self, adjust):
         self.setNewIndent(self.indentLevel + adjust)
-        
+
     def setNewIndent(self, indentLevel):
         self.oldIndents.append(self.indentLevel)
-        self.indentLevel = indentLevel    
+        self.indentLevel = indentLevel
 
 class YamlLoaderException(Exception):
     def __init__(self, *args):

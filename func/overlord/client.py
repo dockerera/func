@@ -159,13 +159,13 @@ class Minions(object):
             if not found_path:
                 return tmp_hosts,tmp_certs
             each_gloob = shortest_path[0]
-        
+
         if not os.access(self.cm_config.certroot, os.R_OK):
             if self.overlord_config.allow_unknown_minions:
                 tmp_hosts.add(each_gloob)
             else:
                 sys.stderr.write("Cannot read certs dir: %s and cannot use unknown minion\n" % (self.cm_config.certroot))
-            
+
             return tmp_hosts,tmp_certs
 
         #actual_gloob = "%s/%s.%s" % (self.cm_config.certroot, each_gloob, self.cm_config.cert_extension)
@@ -329,7 +329,7 @@ class PuppetMinions(Minions):
         #these will be returned
         tmp_certs = set()
         tmp_hosts = set()
-        
+
         # if our cache file of hostnames is newer than both the inventory
         # and the crl, then just read in that list of hostnames to a set
         # and skip all of the below
@@ -345,7 +345,7 @@ class PuppetMinions(Minions):
                 crlage = os.stat(self.overlord_config.puppet_crl)[ST_MTIME]
             if cacheage >= invage and cacheage >= crlage:
                 self._cached_hosts.update(set([ line.strip() for line in open(self.overlord_config.puppet_minion_cache, 'r').readlines()]))
-                
+
         if not self._cached_hosts:
             # overview
             # get all hosts from the puppet inventory
@@ -387,17 +387,17 @@ class PuppetMinions(Minions):
                     if not os.path.exists(pempath):
                         continue
                     self._cached_hosts.add(hostname)
-                
-                # write out the cache of hosts minus the ones excluded by 
+
+                # write out the cache of hosts minus the ones excluded by
                 # revoked serials
                 if os.access(os.path.dirname(self.overlord_config.puppet_minion_cache), os.W_OK):
                     hostcache = open(self.overlord_config.puppet_minion_cache, 'w')
                     for host in self._cached_hosts:
                         hostcache.write('%s\n' % host)
                     hostcache.close()
-                    
-                
-               
+
+
+
         # if call is delegated find the shortest path to the minion and use the sub-overlord's certificate
         if self.delegate:
             try:
@@ -566,7 +566,7 @@ class Overlord(object):
 
         if len(self.minions) == 0 and len(dtools.match_glob_in_tree(self.server_spec, self.minionmap)) == 0:
             raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\".' % self.server_spec
-        
+
         if init_ssl:
             self.setup_ssl()
 
@@ -619,7 +619,7 @@ class Overlord(object):
         if not os.access(self.cert, os.R_OK):
             raise Func_Client_Exception, 'Cannot read ssl cert: %s' % self.cert
 
-            
+
 
 
 
@@ -824,7 +824,7 @@ class Overlord(object):
         #reboot is called...
         if len(self.minions) > 0:
             directhash.update(self.run_direct(module,method,args,nforks,timeout))
-        
+
         #poll async results if we've async turned on
         if self.async:
             while (len(delegatedhash) + len(directhash)) > 0:
@@ -890,7 +890,7 @@ class Overlord(object):
 
 
         def process_server(bucketnumber, buckets, server):
-            
+
             conn = sslclient.FuncServer(server, self.key, self.cert, self.ca, timeout)
             # conn = xmlrpclib.ServerProxy(server)
 

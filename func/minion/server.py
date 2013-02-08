@@ -219,7 +219,7 @@ def setup_server():
         listen_port = 51234
     server = FuncSSLXMLRPCServer((listen_addr, listen_port), config.module_list)
     return server
-    
+
 def serve():
 
     server = setup_server()
@@ -251,7 +251,7 @@ class FuncSSLXMLRPCServer(AuthedXMLRPCServer.AuthedSSLXMLRPCServer,
 
         XmlRpcInterface.__init__(self)
         hn = func_utils.get_hostname_by_route()
-        
+
         if self.config.key_file != '':
             self.key = self.config.key_file
         else:
@@ -380,7 +380,7 @@ def main(argv):
         print 'config:'
         for l in str(server.config).split('\n'):
             print '\t' + l
-            
+
         print 'server name: %s' % server.server_name
         print 'server listen addr: %s:%s' % server.server_address
         print 'key file:  %s' % server.key
@@ -399,7 +399,7 @@ def main(argv):
         for (n, meth) in server.fact_methods.items():
             print '\t' + n + ' : ' + meth()
         sys.exit(0)
-        
+
     if "daemon" in sys.argv or "--daemon" in sys.argv:
         utils.daemonize("/var/run/funcd.pid")
     else:

@@ -77,7 +77,7 @@ class UsersModule(func_module.FuncModule):
             return False
         else:
             return True
-            
+
 
     def __plural(self,f):
         return (lambda xs: map(f,xs))

@@ -17,12 +17,12 @@ def escape(node):
         summary: >
             This function escapes a given key so that it
             may appear within a ypath.  URI style escaping
-            is used so that ypath expressions can be a 
+            is used so that ypath expressions can be a
             valid URI expression.
     """
     typ = type(node)
     if typ is IntType: return str(node)
-    if typ is StringType: 
+    if typ is StringType:
         return quote(node,'')
     raise ValueError("TODO: Support more than just string and integer keys.")
 
@@ -33,7 +33,7 @@ class context:
             This is implemented as a 3-tuple including the parent
             node, the current key/index and the value.  This is
             an immutable object so it can be cached.
-        properties: 
+        properties:
             key:    mapping key or index within the parent collection
             value:  current value within the parent's range
             parent: the parent context
@@ -41,8 +41,8 @@ class context:
             path:   a tuple of the domain keys
         notes: >
             The context class doesn't yet handle going down the
-            domain side of the tree... 
-    """         
+            domain side of the tree...
+    """
     def __init__(self,parent,key,value):
         """
             args:
@@ -53,11 +53,11 @@ class context:
         self.parent = parent
         self.key    = key
         self.value  = value
-        if parent: 
+        if parent:
             assert parent.__class__ is self.__class__
             self.path = parent.path + (escape(key),)
             self.root = parent.root
-        else:      
+        else:
             assert not key
             self.path = tuple()
             self.root = self
@@ -67,7 +67,7 @@ class context:
                 raise ValueError("context is read-only")
         self.__dict__[attname] = attval
     def __hash__(self): return hash(self.path)
-    def __cmp__(self,other):   
+    def __cmp__(self,other):
         try:
             return cmp(self.path,other.path)
         except AttributeError:
@@ -98,8 +98,8 @@ def context_test():
     assert 0        == z.key
     assert 'value'  == z.value
     assert y        == z.parent
-    assert x        == z.root 
-    assert hash(x)  
+    assert x        == z.root
+    assert hash(x)
     assert hash(y)
     assert hash(z)
     assert '/' == str(x)
@@ -111,14 +111,14 @@ class null_seg:
         summary: >
             This is the simplest path segment, it
             doesn't return any results and doesn't
-            depend upon its context.  It also happens to 
+            depend upon its context.  It also happens to
             be the base class which all segments derive.
     """
-    def __iter__(self): 
+    def __iter__(self):
         return self
     def next_null(self):
         raise StopIteration
-    def bind(self,cntx):  
+    def bind(self,cntx):
         """
             summary: >
                 The bind function is called whenever
@@ -137,7 +137,7 @@ class null_seg:
         except StopIteration:
             return 0
     next = next_null
- 
+
 class self_seg(null_seg):
     """
         summary: >
@@ -154,7 +154,7 @@ class self_seg(null_seg):
 
 class root_seg(self_seg):
     def __str__(self): return '/'
-    def bind(self,cntx):  
+    def bind(self,cntx):
         self_seg.bind(self,cntx.root)
 
 class parent_seg(self_seg):
@@ -175,7 +175,7 @@ class wild_seg(null_seg):
     def next_wild(self):
         key = self.keys.next()
         return context(self.cntx,key,self.values[key])
-    def bind(self,cntx):  
+    def bind(self,cntx):
         null_seg.bind(self,cntx)
         typ = type(cntx.value)
         if typ is ListType:
@@ -187,7 +187,7 @@ class wild_seg(null_seg):
             self.keys   = iter(cntx.value)
             self.values = cntx.value
             self.next   = self.next_wild
-            return 
+            return
         self.next = self.next_null
 
 class trav_seg(null_seg):
@@ -197,7 +197,7 @@ class trav_seg(null_seg):
             It is a recursive combination of self and wild.
     """
     def __str__(self): return '/'
-    def next(self): 
+    def next(self):
         while 1:
             (cntx,seg) = self.stk[-1]
             if not seg:
@@ -232,13 +232,13 @@ class match_seg(self_seg):
         except: pass
         self.key = key
     def bind(self,cntx):
-        try: 
+        try:
             mtch = cntx.value[self.key]
             cntx = context(cntx,self.key,mtch)
             self_seg.bind(self,cntx)
         except:
             null_seg.bind(self,cntx)
-        
+
 class conn_seg(null_seg):
     """
         summary: >
@@ -247,8 +247,8 @@ class conn_seg(null_seg):
             parent, it binds the child, and returns each
             context of the child.
     """
-    def __str__(self): 
-        if self.parent.__class__ == root_seg:  
+    def __str__(self):
+        if self.parent.__class__ == root_seg:
             return "/%s" % self.child
         return "%s/%s" % (self.parent, self.child)
     def __init__(self,parent,child):
@@ -261,13 +261,13 @@ class conn_seg(null_seg):
             except StopIteration:
                 cntx = self.parent.next()
                 self.child.bind(cntx)
- 
+
     def bind(self,cntx):
         null_seg.bind(self,cntx)
         self.parent.bind(cntx)
         try:
             cntx = self.parent.next()
-        except StopIteration: 
+        except StopIteration:
             return
         self.child.bind(cntx)
 
@@ -302,8 +302,8 @@ class or_seg(null_seg):
         seg = self.rhs
         while 1:
             nxt = seg.next()
-            if self.unq.get(nxt,None): 
-                continue  
+            if self.unq.get(nxt,None):
+                continue
             return nxt
     def bind(self,cntx):
         null_seg.bind(self,cntx)
@@ -311,14 +311,14 @@ class or_seg(null_seg):
         self.rhs.bind(cntx)
 
 class scalar:
-    def __init__(self,val):  
+    def __init__(self,val):
         self.val = val
-    def __str__(self): 
+    def __str__(self):
         return str(self.val)
-    def value(self): 
+    def value(self):
         return self.val
 
-class equal_pred: 
+class equal_pred:
     def exists_true(self,cntx): return 1
     def exists_false(self,cntx): return 0
     def exists_scalar(self,cntx):
@@ -349,7 +349,7 @@ class equal_pred:
                 self.exists = self.exists_segment
         self.lhs = str(lhs.value())  #TODO: Remove type hack
         self.rhs = rhs
- 
+
 matchSegment = re.compile(r"""^(\w+|/|\.|\*|\"|\')""")
 
 def parse_segment(expr):
@@ -360,11 +360,11 @@ def parse_segment(expr):
     if not(mtch): return (None,expr)
     tok = mtch.group(); siz = len(tok)
     if   '/' == tok: return (trav_seg(),expr)
-    elif '.' == tok: 
+    elif '.' == tok:
         if len(expr) > 1 and '.' == expr[1]:
             seg = parent_seg()
             siz = 2
-        else: 
+        else:
             seg = self_seg()
     elif '*' == tok: seg = wild_seg()
     elif '"' == tok or "'" == tok:
@@ -409,10 +409,10 @@ def parse_predicate(expr):
 
 def parse_start(expr):
     """
-        Initial checking on the expression, and 
+        Initial checking on the expression, and
         determine if it is relative or absolute.
     """
-    if type(expr) != StringType or len(expr) < 1: 
+    if type(expr) != StringType or len(expr) < 1:
         raise TypeError("string required: " + repr(expr))
     if '/' == expr[0]:
         ypth = root_seg()
@@ -431,7 +431,7 @@ def parse(expr):
     while expr:
         tok = expr[0]
         if '/' == tok:
-            (child, expr) = parse_segment(expr[1:])    
+            (child, expr) = parse_segment(expr[1:])
             if child: ypth = conn_seg(ypth,child)
             continue
         if '[' == tok:

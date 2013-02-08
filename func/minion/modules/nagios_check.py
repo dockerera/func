@@ -32,16 +32,16 @@ class NagiosCheck(func_module.FuncModule):
 
     def run(self, check_command):
         """
-        Runs a Nagios check gathering the return code, stdout, and stderr 
+        Runs a Nagios check gathering the return code, stdout, and stderr
         as a tuple.
         """
         command = '%s/%s' % (self.options.nagios_path, check_command)
 
         cmdref = subprocess.Popen(command.split(),
                                    stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, 
+                                   stderr=subprocess.PIPE,
                                    shell=False, close_fds=True)
-        
+
         data = cmdref.communicate()
         return (cmdref.returncode, data[0], data[1])
 

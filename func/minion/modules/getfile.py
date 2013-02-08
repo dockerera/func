@@ -72,4 +72,3 @@ class GetFile(func_module.FuncModule):
         checksum = mysha.hexdigest()
         fic.close()
         return(checksum, chunk)
-

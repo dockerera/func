@@ -59,7 +59,7 @@ def group_paths(ungrouped_list):
     path_group = dict()
     for p in non_single_paths:
         if p[0] not in path_group:
-             path_group[p[0]] = list()
+            path_group[p[0]] = list()
         path_group[p[0]].append(p[1:])
 
     return (single_paths,path_group)
@@ -175,12 +175,12 @@ def get_all_paths(minion, minionmap):
     #more knowledge of graph theory than myself can improve this
     #module, please, please do so. - ssalevan 7/2/08
     seq_list = []
-    
+
     if minionmap == {}:
         if minion_exists_under_node(minion, minionmap):
             return [[minion]] # directly reachable minion found, terminate branch
         return [[]] # no minion found, terminate branch
-        
+
     for k,v in minionmap.iteritems():
         branch_list = []
         branch_list.append(k)

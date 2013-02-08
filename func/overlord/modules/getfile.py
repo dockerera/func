@@ -1,5 +1,5 @@
 #!/usr/bin/python
-#Copyright (C) 2010 Louis-Frederic Coilliot 
+#Copyright (C) 2010 Louis-Frederic Coilliot
 #
 #This program is free software: you can redistribute it and/or modify
 #it under the terms of the GNU General Public License version 3 as
@@ -39,7 +39,7 @@ except ImportError:
 class getfile(overlord_module.BaseModule):
     """Get a file on the minions"""
     def get(self, source, foldertarget):
-        """Get a file on the minions, chunk by chunk. Save the files locally""" 
+        """Get a file on the minions, chunk by chunk. Save the files locally"""
         chunkslendict = self.parent.run("getfile", "chunkslen", [ source ])
         # Exclude results for minions with a REMOTE_ERROR
         chunkslens = [ clen for clen in chunkslendict.values()\
@@ -47,7 +47,7 @@ class getfile(overlord_module.BaseModule):
         maxchunk = max(chunkslens)
 
         if maxchunk == -1:
-            msg = 'Unable to open the file on the minion(s)' 
+            msg = 'Unable to open the file on the minion(s)'
             status = 1
             return status, msg
 
@@ -56,18 +56,18 @@ class getfile(overlord_module.BaseModule):
                 os.mkdir(foldertarget)
             except OSError:
                 msg = 'Problem during the creation of the folder %s'\
-                      % (foldertarget) 
+                      % (foldertarget)
                 status = 1
                 return status, msg
 
         if not os.access(foldertarget, os.W_OK):
-            msg = 'The folder %s is not writeable' % (foldertarget) 
+            msg = 'The folder %s is not writeable' % (foldertarget)
             status = 1
             return status, msg
 
         nullsha = hashlib.new('sha1').hexdigest()
         sourcebasename = os.path.basename(source)
-        excluderrlist = [] 
+        excluderrlist = []
 
         for chunknum in range(maxchunk):
             currentchunks = self.parent.run("getfile", "getchunk",
@@ -75,7 +75,7 @@ class getfile(overlord_module.BaseModule):
             for minion, chunkparams in currentchunks:
                 if minion in excluderrlist:
                     # previous error reported
-                    continue 
+                    continue
                 try:
                     checksum, chunk = chunkparams
                 except ValueError:
@@ -89,14 +89,14 @@ class getfile(overlord_module.BaseModule):
                     continue
                 if mysha.hexdigest() == nullsha:
                     # On this minion there is no more chunk to get
-                    continue 
+                    continue
                 minionfolder = foldertarget+'/'+minion
                 if mysha.hexdigest() == checksum:
                     if not os.path.isdir(minionfolder):
                         try:
                             os.mkdir(minionfolder)
                         except OSError:
-                            excluderrlist.append(minion) 
+                            excluderrlist.append(minion)
                             continue
                     if chunknum == 0:
                         fic = open(minionfolder+'/'+sourcebasename, 'w')

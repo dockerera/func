@@ -13,7 +13,7 @@ from stream import YamlLoaderException, FileStream, StringStream, NestedDocs
 try:
     iter(list()) # is iter supported by this version of Python?
 except:
-    # XXX - Python 2.1 does not support iterators   
+    # XXX - Python 2.1 does not support iterators
     class StopIteration: pass
     class iter:
         def __init__(self,parser):
@@ -27,14 +27,14 @@ except:
         def __getitem__(self,idx): return self._docs[idx]
         def next(self):
             if self._idx < len(self._docs):
-                ret = self._docs[self._idx] 
+                ret = self._docs[self._idx]
                 self._idx = self._idx + 1
                 return ret
             raise StopIteration
 
 def loadFile(filename, typeResolver=None):
     return loadStream(FileStream(filename),typeResolver)
-   
+
 def load(str, typeResolver=None):
     return loadStream(StringStream(str), typeResolver)
 
@@ -105,7 +105,7 @@ class Parser:
         while self.nestPop():
             if self.line:
                 lineParser(items)
-        return items    
+        return items
 
     def parse_seq_line(self, items):
         value = self.value("-")
@@ -147,7 +147,7 @@ class Parser:
             return 0
         if value[0] == "'":
             return 0
-        if re.search(':(\s|$)', value):       
+        if re.search(':(\s|$)', value):
             return 1
 
     def parse_seq_value(self, value):
@@ -168,11 +168,11 @@ class Parser:
         (alias, value) = self.testForRepeatOfAlias(value)
         if alias:
             return value
-        (alias, value) = self.testForAlias(value)            
+        (alias, value) = self.testForAlias(value)
         value = self.parse_unaliased_value(value)
         if alias:
             self.aliases[alias] = value
-        return value          
+        return value
 
     def parse_unaliased_value(self, value):
         match = re.match(r"(!\S*)(.*)", value)
@@ -186,14 +186,14 @@ class Parser:
                 return value
         return self.parse_untyped_value(value)
 
-    def parseInlineArray(self, value):        
+    def parseInlineArray(self, value):
         if re.match("\s*\[", value):
-            return self.parseInline([], value, ']', 
+            return self.parseInline([], value, ']',
                 self.parseInlineArrayItem)
 
-    def parseInlineHash(self, value):        
+    def parseInlineHash(self, value):
         if re.match("\s*{", value):
-            return self.parseInline(self.dictionary(), value, '}', 
+            return self.parseInline(self.dictionary(), value, '}',
                 self.parseInlineHashItem)
 
     def parseInlineArrayItem(self, result, token):
@@ -254,7 +254,7 @@ class Parser:
             resultString = resultString + data[i]
             resultString = resultString + foldChar(data[i], data[i+1])
             i = i + 1
-        return resultString + data[-1] + "\n"        
+        return resultString + data[-1] + "\n"
 
     def unprunedBlock(self):
         self.nestedDocs.nestToNextLine()
@@ -330,4 +330,3 @@ def joinLines(lines):
 
 def joinLiteral(data):
     return string.join(data,"\n") + "\n"
-

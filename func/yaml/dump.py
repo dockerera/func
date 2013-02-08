@@ -13,11 +13,11 @@ from klass import hasMethod, isDictionary
 import re
 
 """
-  The methods from this module that are exported to the top 
+  The methods from this module that are exported to the top
   level yaml package should remain stable.  If you call
-  directly into other methods of this module, be aware that 
+  directly into other methods of this module, be aware that
   they may change or go away in future implementations.
-  Contact the authors if there are methods in this file 
+  Contact the authors if there are methods in this file
   that you wish to remain stable.
 """
 
@@ -45,7 +45,7 @@ class Dumper:
         return self
 
     def dump(self, *data):
-        self.result = []  
+        self.result = []
         self.output = self.outputToString
         self.dumpDocuments(data)
         return string.join(self.result,"")
@@ -66,7 +66,7 @@ class Dumper:
             self.anchors  = YamlAnchors(obj)
             self.output("---")
             self.dumpData(obj)
-            self.output("\n")       
+            self.output("\n")
 
     def indentDump(self, data):
         oldIndent = self.currIndent
@@ -77,8 +77,8 @@ class Dumper:
     def dumpData(self, data):
         anchor = self.anchors.shouldAnchor(data)
         # Disabling anchors because they are lame for strings that the user might want to view/edit -- mdehaan
-        # 
-        #if anchor: 
+        #
+        #if anchor:
         #    self.output(" &%d" % anchor )
         #else:
         #    anchor = self.anchors.isAlias(data)
@@ -88,7 +88,7 @@ class Dumper:
         if (data is None):
             self.output(' ~')
         elif hasMethod(data, 'to_yaml'):
-            self.dumpTransformedObject(data)            
+            self.dumpTransformedObject(data)
         elif hasMethod(data, 'to_yaml_implicit'):
             self.output(" " + data.to_yaml_implicit())
         elif type(data) is InstanceType:
@@ -132,7 +132,7 @@ class Dumper:
     def dumpKey(self, key):
         if type(key) is TupleType:
             self.output("?")
-            self.indentDump(key) 
+            self.indentDump(key)
             self.output("\n")
         else:
             self.output(quote(key))
@@ -154,7 +154,7 @@ class Dumper:
         else:
             self.output(" ")
             self.output(quote(data))
-    
+
     def dumpMultiLineScalar(self, lines):
         self.output(" |")
         if lines[-1] == "":
@@ -165,7 +165,7 @@ class Dumper:
 
     def raiseToYamlSyntaxError(self):
         raise """
-to_yaml should return tuple w/object to dump 
+to_yaml should return tuple w/object to dump
 and optional YAML type.  Example:
 ({'foo': 'bar'}, '!!foobar')
 """
@@ -183,7 +183,7 @@ def accumulate(obj,occur):
     if 0 == occur.get(obid,0):
         occur[obid] = 1
         if typ is ListType:
-            for x in obj: 
+            for x in obj:
                 accumulate(x,occur)
         if typ is DictType:
             for (x,y) in obj.items():
@@ -199,7 +199,7 @@ class YamlAnchors:
         anchorVisits = {}
         for (obid, occur) in occur.items():
             if occur > 1:
-                anchorVisits[obid] = 0 
+                anchorVisits[obid] = 0
         self._anchorVisits = anchorVisits
         self._currentAliasIndex     = 0
     def shouldAnchor(self,obj):
@@ -245,7 +245,7 @@ def isStr(data):
     if type(data) == type(u''):
         return 1
     return 0
-    
+
 def doubleUpQuotes(data):
     return data.replace("'", "''")
 
@@ -260,7 +260,7 @@ def quote(data):
     if hasSpecialChar(data) or data[0] == single:
         data = `data`[1:-1]
         data = string.replace(data, r"\x08", r"\b")
-        quote = double 
+        quote = double
     elif needsSingleQuote(data):
         quote = single
         data = doubleUpQuotes(data)
@@ -292,7 +292,7 @@ def isMulti(data):
 
 def isUnicode(data):
     return type(data) == unicode
-    
+
 def sloppyIsUnicode(data):
         # XXX - hack to make tests pass for 2.1
     return repr(data)[:2] == "u'" and repr(data) != data
@@ -300,6 +300,3 @@ def sloppyIsUnicode(data):
 import sys
 if sys.hexversion < 0x20200000:
     isUnicode = sloppyIsUnicode
-    
-
-

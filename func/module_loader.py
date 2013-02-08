@@ -53,7 +53,7 @@ def load_methods(path, main_class, parent_class=None):
                 methods["%s.%s" % (x,method)]=getattr(modules[x], method)
     return methods
 
-def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule, 
+def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule,
                  blacklist=None, parent_class=None, module_list=[]):
     log = logger.Logger().logger
     python_path = distutils.sysconfig.get_python_lib()
@@ -94,7 +94,7 @@ def load_modules(path='func/minion/modules/', main_class=func_module.FuncModule,
                     matched = True
             if not matched: # if we are not matched against anything in the module_list then skip it
                 continue
-                
+
         if mods.has_key(mod_imp_name):
             # If we've already imported mod_imp_name, don't import it again
             continue

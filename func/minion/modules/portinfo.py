@@ -39,14 +39,14 @@ class PortinfoModule(func_module.FuncModule):
         tcpports = []
         udpports = []
         for line in data.splitlines():
-              if line.split()[0]=="tcp":
-		    pid = line.split()[6].split('/')[0]
-		    cmd = self.cmdline(pid)
-                    tcpports.append( (line.split()[3], "tcp", cmd) )
-              elif line.split()[0]=="udp":
-		    pid = line.split()[5].split('/')[0]
-		    cmd = self.cmdline(pid)
-                    udpports.append( (line.split()[3], "udp", cmd) )
+            if line.split()[0]=="tcp":
+                pid = line.split()[6].split('/')[0]
+                cmd = self.cmdline(pid)
+                tcpports.append( (line.split()[3], "tcp", cmd) )
+            elif line.split()[0]=="udp":
+                pid = line.split()[5].split('/')[0]
+                cmd = self.cmdline(pid)
+                udpports.append( (line.split()[3], "udp", cmd) )
         tcpports.sort()
         udpports.sort()
         ports.append( ('# addr:port', 'protocol', 'command [args]') )

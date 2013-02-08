@@ -207,11 +207,11 @@ def re_glob(s):
     if _re_compiled_glob_match is None:
         _re_compiled_glob_match = re.compile('[*?]|\[.+\]').search
     return _re_compiled_glob_match(s)
-    
+
 def getCacheDir(tmpdir='/var/tmp', reuse=True, prefix='func-'):
     """return a path to a valid and safe cachedir - only used when not running
        as root or when --tempcache is set"""
-    
+
     uid = os.geteuid()
     try:
         usertup = pwd.getpwuid(uid)
@@ -220,7 +220,7 @@ def getCacheDir(tmpdir='/var/tmp', reuse=True, prefix='func-'):
         return None # if it returns None then, well, it's bollocksed
 
     if reuse:
-        # check for /var/tmp/func-username-* - 
+        # check for /var/tmp/func-username-* -
         prefix = '%s%s-' % (prefix, username)
         dirpath = '%s/%s*' % (tmpdir, prefix)
         cachedirs = sorted(glob.glob(dirpath))

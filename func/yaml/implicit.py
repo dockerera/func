@@ -52,4 +52,3 @@ def cleanseNumber(str):
         str = str[1:]
     str = string.replace(str,',','')
     return str
-

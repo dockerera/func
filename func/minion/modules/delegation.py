@@ -75,7 +75,7 @@ class DelegationModule(func_module.FuncModule):
 
         # Concat all minions to a server_spec in order to make use of forks
         minion = ";".join(single_paths)
-        overlord = fc.Overlord(minion, 
+        overlord = fc.Overlord(minion,
                                async=async,
                                nforks=nforks,
                                timeout=timeout)

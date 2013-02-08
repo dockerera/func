@@ -18,14 +18,14 @@ class DefaultResolver:
 def makeClass(module, classname, dict):
     exec('import %s' % (module))
     klass = eval('%s.%s' % (module, classname))
-    obj = new.instance(klass) 
+    obj = new.instance(klass)
     if hasMethod(obj, 'from_yaml'):
         return obj.from_yaml(dict)
     obj.__dict__ = dict
     return obj
 
 def hasMethod(object, method_name):
-    try:    
+    try:
         klass = object.__class__
     except:
         return 0
@@ -43,7 +43,7 @@ try:
     isDictionary({})
 except:
     def isDictionary(data): return type(data) == type({}) # XXX python 2.1
-    
+
 if __name__ == '__main__':
     print isDictionary({'foo': 'bar'})
     try:
