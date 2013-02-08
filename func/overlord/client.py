@@ -537,8 +537,6 @@ class Overlord(object):
 
         self.allow_unknown_minions = self.config.allow_unknown_minions
 
-=======
->>>>>>> ixs-delegation
         #overlord_query stuff
         self.overlord_query = OverlordQuery()
 
@@ -555,23 +553,6 @@ class Overlord(object):
             try:
                 mapstream = file(self.mapfile, 'r').read()
                 self.minionmap = yaml.load(mapstream).next()
-<<<<<<< HEAD
-            except Exception, e:
-                sys.stderr.write("mapfile load failed, switching delegation off\n")
-                self.delegate = False
-
-        self.minions_class = self._mc(self.server_spec, port=self.port,
-                                noglobs=self.noglobs, verbose=self.verbose,
-                                delegate=self.delegate,minionmap=self.minionmap,
-                                exclude_spec=self.exclude_spec)
-        # once we setup the minionsclass insert our current config object
-        self.minions_class.overlord_config = self.config
-        self.minions = self.minions_class.get_urls()
-
-        if len(self.minions) == 0:
-            raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\". ' % self.server_spec
-
-=======
             except:
                 sys.stderr.write("mapfile load failed, switching delegation off\n")
                 self.delegate = False
@@ -583,7 +564,6 @@ class Overlord(object):
         if len(self.minions) == 0 and len(dtools.match_glob_in_tree(self.server_spec, self.minionmap)) == 0:
             raise Func_Client_Exception, 'Can\'t find any minions matching \"%s\".' % self.server_spec
         
->>>>>>> ixs-delegation
         if init_ssl:
             self.setup_ssl()
 
@@ -839,15 +819,9 @@ class Overlord(object):
         #Next, we run everything that can be run directly beneath this overlord
         #Why do we do this after delegation calls?  Imagine what happens when
         #reboot is called...
-<<<<<<< HEAD
-        if single_paths != []:
-            directhash.update(self.run_direct(module,method,args,nforks))
-
-=======
         if len(self.minions) > 0:
             directhash.update(self.run_direct(module,method,args,nforks,timeout))
         
->>>>>>> ixs-delegation
         #poll async results if we've async turned on
         if self.async:
             while (len(delegatedhash) + len(directhash)) > 0:

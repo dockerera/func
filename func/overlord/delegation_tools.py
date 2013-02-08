@@ -175,22 +175,12 @@ def get_all_paths(minion, minionmap):
     #more knowledge of graph theory than myself can improve this
     #module, please, please do so. - ssalevan 7/2/08
     seq_list = []
-<<<<<<< HEAD
-
-    if minion_exists_under_node(minion, minionmap):
-        return [[minion]] #minion found, terminate branch
-
-    if minionmap == {}:
-        return [[]] #no minion found, terminate branch
-
-=======
     
     if minionmap == {}:
         if minion_exists_under_node(minion, minionmap):
             return [[minion]] # directly reachable minion found, terminate branch
         return [[]] # no minion found, terminate branch
         
->>>>>>> ixs-delegation
     for k,v in minionmap.iteritems():
         branch_list = []
         branch_list.append(k)
