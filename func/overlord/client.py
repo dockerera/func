@@ -786,7 +786,7 @@ class Overlord(object):
         If Overlord() was constructed with noglobs=True, the return is instead
         just a single value, not a hash.
         """
-        if timeout:
+        if not timeout:
             timeout = self.timeout
 
         if module == "local":
@@ -882,7 +882,7 @@ class Overlord(object):
         If Overlord() was constructed with noglobs=True, the return is instead
         just a single value, not a hash.
         """
-        if timeout:
+        if not timeout:
             timeout = self.timeout
 
         results = {}
