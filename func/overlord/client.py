@@ -776,7 +776,7 @@ class Overlord(object):
 
     # -----------------------------------------------
 
-    def run(self, module, method, args, nforks=1, timeout=self.timeout):
+    def run(self, module, method, args, nforks=1, timeout=None):
         """
         Invoke a remote method on one or more servers.
         Run returns a hash, the keys are server names, the values are the
@@ -786,6 +786,8 @@ class Overlord(object):
         If Overlord() was constructed with noglobs=True, the return is instead
         just a single value, not a hash.
         """
+        if timeout:
+            timeout = self.timeout
 
         if module == "local":
             if method in self.methods.keys():
@@ -870,7 +872,7 @@ class Overlord(object):
 
     # -----------------------------------------------
 
-    def run_direct(self, module, method, args, nforks=1, timeout=self.timeout, *extraargs, **kwargs):
+    def run_direct(self, module, method, args, nforks=1, timeout=None, *extraargs, **kwargs):
         """
         Invoke a remote method on one or more servers.
         Run returns a hash, the keys are server names, the values are the
@@ -880,6 +882,8 @@ class Overlord(object):
         If Overlord() was constructed with noglobs=True, the return is instead
         just a single value, not a hash.
         """
+        if timeout:
+            timeout = self.timeout
 
         results = {}
         spec = ''
